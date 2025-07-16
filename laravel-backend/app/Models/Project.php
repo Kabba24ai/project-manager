@@ -106,6 +106,41 @@ class Project extends Model
     {
         return $query->whereHas('team', function ($q) use ($user) {
             $q->where('user_id', $user->id);
-        });
+        })->orWhere('created_by', $user->id);
+    }
+
+    public function scopeByPriority($query, $priority)
+    {
+        return $query->where('priority', $priority);
+    }
+
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    // Helper Methods
+    public function isManager(User $user): bool
+    {
+        return $this->project_manager_id === $user->id || 
+               $this->created_by === $user->id ||
+               $this->team()->where('user_id', $user->id)->wherePivot('role', 'manager')->exists();
+    }
+
+    public function isMember(User $user): bool
+    {
+        return $this->team()->where('user_id', $user->id)->exists() || 
+               $this->created_by === $user->id;
+    }
+
+    public function canUserAccess(User $user): bool
+    {
+        // Public projects can be accessed by anyone in the organization
+        if ($this->settings['publicProject'] ?? false) {
+            return true;
+        }
+
+        // Private projects only accessible to team members and creator
+        return $this->isMember($user);
     }
 }

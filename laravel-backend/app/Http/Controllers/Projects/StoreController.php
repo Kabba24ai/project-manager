@@ -6,39 +6,102 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
+use App\Models\TaskList;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class StoreController extends Controller
 {
     /**
-     * Create a new project
+     * Create a new project with default task lists
      */
     public function __invoke(StoreProjectRequest $request): JsonResponse
     {
-        $project = Project::create([
-            ...$request->validated(),
-            'created_by' => $request->user()->id,
-        ]);
+        $this->authorize('create', Project::class);
 
-        // Attach team members
-        if ($request->has('team_members')) {
-            $teamMembers = collect($request->team_members)->mapWithKeys(function ($userId) {
-                return [$userId => ['role' => 'member']];
-            });
-            
-            // Add project manager with manager role
-            if ($request->project_manager_id) {
-                $teamMembers[$request->project_manager_id] = ['role' => 'manager'];
+        DB::beginTransaction();
+        
+        try {
+            // Create the project
+            $project = Project::create([
+                ...$request->validated(),
+                'created_by' => $request->user()->id,
+                'status' => $request->status ?? 'active',
+                'priority' => $request->priority ?? 'medium',
+            ]);
+
+            // Attach team members with roles
+            if ($request->has('team_members') && !empty($request->team_members)) {
+                $teamMembers = [];
+                
+                foreach ($request->team_members as $userId) {
+                    $role = ($userId == $request->project_manager_id) ? 'manager' : 'member';
+                    $teamMembers[$userId] = ['role' => $role];
+                }
+                
+                $project->team()->sync($teamMembers);
             }
+
+            // Create default task lists based on project settings
+            $this->createDefaultTaskLists($project);
+
+            // Load relationships for response
+            $project->load(['team', 'projectManager', 'taskLists']);
+
+            DB::commit();
+
+            return response()->json([
+                'project' => new ProjectResource($project),
+                'message' => 'Project created successfully',
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollback();
             
-            $project->team()->sync($teamMembers);
+            return response()->json([
+                'message' => 'Failed to create project',
+                'error' => $e->getMessage()
+            ], 500);
         }
+    }
 
-        $project->load(['team', 'taskLists']);
+    /**
+     * Create default task lists for the project
+     */
+    private function createDefaultTaskLists(Project $project): void
+    {
+        $defaultTaskLists = [
+            [
+                'name' => 'To Do',
+                'description' => 'Tasks that are planned but not yet started',
+                'color' => 'bg-gray-100',
+                'order' => 1
+            ],
+            [
+                'name' => 'In Progress',
+                'description' => 'Tasks currently being worked on',
+                'color' => 'bg-blue-100',
+                'order' => 2
+            ],
+            [
+                'name' => 'Review',
+                'description' => 'Tasks completed and awaiting review',
+                'color' => 'bg-yellow-100',
+                'order' => 3
+            ],
+            [
+                'name' => 'Done',
+                'description' => 'Completed and approved tasks',
+                'color' => 'bg-green-100',
+                'order' => 4
+            ]
+        ];
 
-        return response()->json([
-            'project' => new ProjectResource($project),
-            'message' => 'Project created successfully',
-        ], 201);
+        foreach ($defaultTaskLists as $taskListData) {
+            TaskList::create([
+                'project_id' => $project->id,
+                ...$taskListData
+            ]);
+        }
     }
 }

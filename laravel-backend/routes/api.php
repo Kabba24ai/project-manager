@@ -39,6 +39,9 @@ use App\Http\Controllers\Comments\DeleteController as CommentDeleteController;
 use App\Http\Controllers\Attachments\StoreController as AttachmentStoreController;
 use App\Http\Controllers\Attachments\DeleteController as AttachmentDeleteController;
 
+// Users Controller
+use App\Http\Controllers\UsersController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes - Domain Driven Architecture
@@ -58,6 +61,12 @@ Route::prefix('auth')->group(function () {
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
+    
+    // Users Routes (for team selection)
+    Route::prefix('users')->group(function () {
+        Route::get('/', [UsersController::class, 'index']);
+        Route::get('/managers', [UsersController::class, 'managers']);
+    });
     
     // Projects Domain
     Route::prefix('projects')->group(function () {

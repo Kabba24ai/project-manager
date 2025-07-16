@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description');
-            $table->enum('status', ['active', 'completed', 'on-hold', 'cancelled'])->default('active');
+            $table->enum('status', ['active', 'planning', 'completed', 'on-hold', 'cancelled'])->default('active');
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->date('start_date')->nullable();
             $table->date('due_date')->nullable();
@@ -23,11 +23,14 @@ return new class extends Migration
             $table->json('tags')->nullable();
             $table->json('settings')->nullable();
             $table->foreignId('created_by')->constrained('users');
-            $table->foreignId('project_manager_id')->nullable()->constrained('users');
+            $table->foreignId('project_manager_id')->constrained('users');
             $table->timestamps();
             
             $table->index(['status', 'created_at']);
             $table->index(['due_date']);
+            $table->index(['priority']);
+            $table->index(['project_manager_id']);
+            $table->index(['created_by']);
         });
     }
 

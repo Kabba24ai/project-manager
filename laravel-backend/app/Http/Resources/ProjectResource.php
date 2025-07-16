@@ -22,7 +22,17 @@ class ProjectResource extends JsonResource
             'objectives' => $this->objectives ?? [],
             'deliverables' => $this->deliverables ?? [],
             'tags' => $this->tags ?? [],
-            'settings' => $this->settings ?? [],
+            'settings' => $this->settings ?? [
+                'taskTypes' => [
+                    'general' => true,
+                    'equipmentId' => false,
+                    'customerName' => false
+                ],
+                'allowFileUploads' => true,
+                'requireApproval' => false,
+                'enableTimeTracking' => true,
+                'publicProject' => false
+            ],
             'tasks_count' => $this->tasks_count,
             'completed_tasks' => $this->completed_tasks,
             'progress_percentage' => $this->progress_percentage,
@@ -32,7 +42,12 @@ class ProjectResource extends JsonResource
             // Relationships
             'team' => UserResource::collection($this->whenLoaded('team')),
             'project_manager' => new UserResource($this->whenLoaded('projectManager')),
+            'creator' => new UserResource($this->whenLoaded('creator')),
             'task_lists' => TaskListResource::collection($this->whenLoaded('taskLists')),
+            
+            // Computed fields
+            'is_overdue' => $this->due_date && $this->due_date->isPast() && $this->status !== 'completed',
+            'days_until_due' => $this->due_date ? now()->diffInDays($this->due_date, false) : null,
         ];
     }
 }
