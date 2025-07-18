@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { Plus, TrendingUp, Clock, CheckCircle, AlertTriangle, Users, Calendar, ArrowLeft, X, MoreVertical, Edit, Trash2, Paperclip, MessageSquare, Settings } from 'lucide-react';
 import { ViewType } from '../types';
+import { useProjects } from '../hooks/useApi';
 
 interface DashboardProps {
   onViewChange: (view: ViewType, data?: any) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
+  // API hooks
+  const { projects: apiProjects, loading: projectsLoading, fetchProjects } = useProjects();
+
   const [allTasks, setAllTasks] = useState([
     {
       id: 1,
@@ -87,44 +91,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
   const [selectedTaskForDetail, setSelectedTaskForDetail] = useState(null);
   const [showProjectTasks, setShowProjectTasks] = useState(null); // { projectId, status }
 
-  const projects = [
-    {
-      id: 1,
-      name: 'Website Redesign',
-      description: 'Complete redesign of company website',
-      status: 'active',
-      tasksCount: 24,
-      completedTasks: 8,
-      progressPercentage: 33.3
-    },
-    {
-      id: 2,
-      name: 'Mobile App Development',
-      description: 'iOS and Android mobile application',
-      status: 'active',
-      tasksCount: 45,
-      completedTasks: 12,
-      progressPercentage: 26.7
-    },
-    {
-      id: 3,
-      name: 'Marketing Campaign',
-      description: 'Q2 digital marketing initiatives',
-      status: 'completed',
-      tasksCount: 18,
-      completedTasks: 18,
-      progressPercentage: 100
-    },
-    {
-      id: 4,
-      name: 'Data Analytics Dashboard',
-      description: 'Business intelligence and reporting platform',
-      status: 'active',
-      tasksCount: 32,
-      completedTasks: 15,
-      progressPercentage: 46.9
-    }
-  ];
+  // Load projects on component mount
+  React.useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  // Use API projects or fallback to empty array
+  const projects = apiProjects.length > 0 ? apiProjects : [];
 
   const [activeTab, setActiveTab] = useState('active');
   
@@ -404,97 +377,116 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filteredProjects.map(project => {
-                const pendingReviewCount = getTaskCounts(project.id, 'pending_review');
-                const needsWorkCount = getTaskCounts(project.id, 'needs_work');
-                
-                return (
-                  <div
-                    key={project.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
-                  >
-                    <div 
-                      className="cursor-pointer"
-                      onClick={() => onViewChange('project-detail', project)}
+            {projectsLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-500">Loading projects...</p>
+              </div>
+            ) : filteredProjects.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {filteredProjects.map(project => {
+                  const pendingReviewCount = getTaskCounts(project.id, 'pending_review');
+                  const needsWorkCount = getTaskCounts(project.id, 'needs_work');
+                  
+                  return (
+                    <div
+                      key={project.id}
+                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-base font-semibold text-gray-900">{project.name}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          project.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {project.status}
-                        </span>
-                      </div>
-                      
-                      <p className="text-gray-600 text-sm mb-3">{project.description}</p>
-                      
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Progress</span>
-                          <span className="font-medium">{project.completedTasks}/{project.tasksCount}</span>
+                      <div 
+                        className="cursor-pointer"
+                        onClick={() => onViewChange('project-detail', project)}
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="text-base font-semibold text-gray-900">{project.name}</h3>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            project.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {project.status}
+                          </span>
                         </div>
                         
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full transition-all"
-                            style={{ width: `${project.progressPercentage}%` }}
-                          />
-                        </div>
+                        <p className="text-gray-600 text-sm mb-3">{project.description}</p>
                         
-                        <div className="text-right text-xs text-gray-500">
-                          {project.progressPercentage}% complete
+                        <div className="space-y-2 mb-4">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Progress</span>
+                            <span className="font-medium">{project.completed_tasks || 0}/{project.tasks_count || 0}</span>
+                          </div>
+                          
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full transition-all"
+                              style={{ width: `${project.progress_percentage || 0}%` }}
+                            />
+                          </div>
+                          
+                          <div className="text-right text-xs text-gray-500">
+                            {project.progress_percentage || 0}% complete
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Task Action Buttons */}
-                    <div className="flex space-x-2 pt-3 border-t border-gray-100">
-                      {pendingReviewCount > 0 && (
-                        <button
-                          onClick={() => handleShowProjectTasks(project.id, 'pending_review')}
-                          className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            showProjectTasks?.projectId === project.id && showProjectTasks?.status === 'pending_review'
-                              ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                              : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200'
-                          }`}
-                        >
-                          <div className="flex items-center justify-center space-x-1">
-                            <Clock className="w-3 h-3" />
-                            <span>Review ({pendingReviewCount})</span>
+                      {/* Task Action Buttons */}
+                      <div className="flex space-x-2 pt-3 border-t border-gray-100">
+                        {pendingReviewCount > 0 && (
+                          <button
+                            onClick={() => handleShowProjectTasks(project.id, 'pending_review')}
+                            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              showProjectTasks?.projectId === project.id && showProjectTasks?.status === 'pending_review'
+                                ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                                : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200'
+                            }`}
+                          >
+                            <div className="flex items-center justify-center space-x-1">
+                              <Clock className="w-3 h-3" />
+                              <span>Review ({pendingReviewCount})</span>
+                            </div>
+                          </button>
+                        )}
+                        
+                        {needsWorkCount > 0 && (
+                          <button
+                            onClick={() => handleShowProjectTasks(project.id, 'needs_work')}
+                            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              showProjectTasks?.projectId === project.id && showProjectTasks?.status === 'needs_work'
+                                ? 'bg-red-100 text-red-800 border border-red-300'
+                                : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                            }`}
+                          >
+                            <div className="flex items-center justify-center space-x-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              <span>Needs Work ({needsWorkCount})</span>
+                            </div>
+                          </button>
+                        )}
+                        
+                        {pendingReviewCount === 0 && needsWorkCount === 0 && (
+                          <div className="flex-1 px-3 py-2 text-center text-sm text-gray-500 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center justify-center space-x-1">
+                              <CheckCircle className="w-3 h-3 text-green-600" />
+                              <span className="text-green-700">All Clear</span>
+                            </div>
                           </div>
-                        </button>
-                      )}
-                      
-                      {needsWorkCount > 0 && (
-                        <button
-                          onClick={() => handleShowProjectTasks(project.id, 'needs_work')}
-                          className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            showProjectTasks?.projectId === project.id && showProjectTasks?.status === 'needs_work'
-                              ? 'bg-red-100 text-red-800 border border-red-300'
-                              : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
-                          }`}
-                        >
-                          <div className="flex items-center justify-center space-x-1">
-                            <AlertTriangle className="w-3 h-3" />
-                            <span>Needs Work ({needsWorkCount})</span>
-                          </div>
-                        </button>
-                      )}
-                      
-                      {pendingReviewCount === 0 && needsWorkCount === 0 && (
-                        <div className="flex-1 px-3 py-2 text-center text-sm text-gray-500 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center justify-center space-x-1">
-                            <CheckCircle className="w-3 h-3 text-green-600" />
-                            <span className="text-green-700">All Clear</span>
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                <Plus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Projects Yet</h3>
+                <p className="text-gray-500 mb-6">Get started by creating your first project</p>
+                <button 
+                  onClick={() => onViewChange('add-project')}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Create Your First Project
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Task Details Section - Only show when a project's tasks are selected */}

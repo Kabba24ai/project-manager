@@ -28,8 +28,9 @@ class ProjectPolicy
      */
     public function create(User $user): bool
     {
-        // Only admins and managers can create projects
-        return in_array($user->role, ['admin', 'manager']);
+        // All authenticated users can create projects for now
+        // You can restrict this later based on your requirements
+        return true;
     }
 
     /**

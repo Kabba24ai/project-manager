@@ -1,22 +1,17 @@
 import React, { useState, useRef } from 'react';
 import { ArrowLeft, Save, Upload, X, Calendar, Users, Flag, Settings, Plus, Minus } from 'lucide-react';
 import { ViewType } from '../types';
+import { useUsers, useProjects } from '../hooks/useApi';
+import apiService from '../services/api';
 
 interface AddProjectFormProps {
   onViewChange: (view: ViewType, data?: any) => void;
 }
 
 const AddProjectForm: React.FC<AddProjectFormProps> = ({ onViewChange }) => {
-  // Mock users data - this would come from API
-  const [availableUsers] = useState([
-    { id: 1, name: 'Sarah Johnson', role: 'Project Manager', avatar: 'SJ', email: 'sarah.johnson@company.com' },
-    { id: 2, name: 'Mike Chen', role: 'Senior Developer', avatar: 'MC', email: 'mike.chen@company.com' },
-    { id: 3, name: 'Emily Rodriguez', role: 'UI/UX Designer', avatar: 'ER', email: 'emily.rodriguez@company.com' },
-    { id: 4, name: 'David Kim', role: 'Full Stack Developer', avatar: 'DK', email: 'david.kim@company.com' },
-    { id: 5, name: 'Lisa Wang', role: 'QA Engineer', avatar: 'LW', email: 'lisa.wang@company.com' },
-    { id: 6, name: 'John Smith', role: 'DevOps Engineer', avatar: 'JS', email: 'john.smith@company.com' },
-    { id: 7, name: 'Anna Thompson', role: 'Business Analyst', avatar: 'AT', email: 'anna.thompson@company.com' }
-  ]);
+  // API hooks
+  const { users: availableUsers, loading: usersLoading, fetchUsers, fetchManagers } = useUsers();
+  const { createProject } = useProjects();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -53,6 +48,21 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ onViewChange }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [tagInput, setTagInput] = useState('');
   const fileInputRef = useRef(null);
+  const [managers, setManagers] = useState([]);
+
+  // Load users and managers on component mount
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        await fetchUsers();
+        const managersResponse = await apiService.getManagers();
+        setManagers(managersResponse.data?.managers || []);
+      } catch (error) {
+        console.error('Failed to load users:', error);
+      }
+    };
+    loadData();
+  }, [fetchUsers]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -221,13 +231,32 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ onViewChange }) => {
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Prepare project data for API
+      const projectData = {
+        name: formData.name,
+        description: formData.description,
+        priority: formData.priority.toLowerCase(),
+        status: formData.status.toLowerCase().replace(' ', '-'),
+        start_date: formData.startDate || null,
+        due_date: formData.dueDate || null,
+        budget: formData.budget ? parseFloat(formData.budget.replace(/[^0-9.-]+/g, '')) : null,
+        client: formData.client || null,
+        project_manager_id: parseInt(formData.projectManager),
+        team_members: formData.teamMembers.map(id => parseInt(id)),
+        objectives: formData.objectives.filter(obj => obj.trim()),
+        deliverables: formData.deliverables.filter(del => del.trim()),
+        tags: formData.tags,
+        settings: formData.settings
+      };
+
+      const response = await createProject(projectData);
       
       // Success - redirect back to dashboard
       onViewChange('dashboard');
     } catch (error) {
       console.error('Error creating project:', error);
+      // You might want to show an error message to the user here
+      alert('Failed to create project. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -535,8 +564,8 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ onViewChange }) => {
                           <input
                             type="checkbox"
                             id={`user-${user.id}`}
-                            checked={formData.teamMembers.includes(user.id)}
-                            onChange={() => handleTeamMemberToggle(user.id)}
+                            checked={formData.teamMembers.includes(user.id.toString())}
+                            onChange={() => handleTeamMemberToggle(user.id.toString())}
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -546,7 +575,7 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ onViewChange }) => {
                             <div className="font-medium text-gray-900">{user.name}</div>
                             <div className="text-sm text-gray-500">{user.role} • {user.email}</div>
                           </div>
-                          {formData.projectManager === user.id && (
+                          {formData.projectManager === user.id.toString() && (
                             <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Manager</span>
                           )}
                         </div>
@@ -565,12 +594,19 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ onViewChange }) => {
                               <span className="text-xs font-medium text-white">{user.avatar}</span>
                             </div>
                             <span className="text-sm text-gray-900">{user.name}</span>
-                            {formData.projectManager === user.id && (
+                            {formData.projectManager === user.id.toString() && (
                               <span className="text-xs text-blue-600">(PM)</span>
                             )}
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {usersLoading && (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                      <p className="text-sm text-gray-500 mt-2">Loading users...</p>
                     </div>
                   )}
                 </div>

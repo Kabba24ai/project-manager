@@ -80,8 +80,11 @@ class StoreProjectRequest extends FormRequest
         // Ensure project manager is included in team members
         if ($this->has('project_manager_id') && $this->has('team_members')) {
             $teamMembers = $this->team_members ?? [];
-            if (!in_array($this->project_manager_id, $teamMembers)) {
-                $teamMembers[] = $this->project_manager_id;
+            $projectManagerId = (int) $this->project_manager_id;
+            $teamMemberIds = array_map('intval', $teamMembers);
+            
+            if (!in_array($projectManagerId, $teamMemberIds)) {
+                $teamMemberIds[] = $projectManagerId;
                 $this->merge(['team_members' => $teamMembers]);
             }
         }
