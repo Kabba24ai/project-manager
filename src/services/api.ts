@@ -1,5 +1,5 @@
 // API service for Laravel backend integration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
 
 interface ApiResponse<T> {
   data?: T;
@@ -45,6 +45,8 @@ class ApiService {
       return data;
     } catch (error) {
       console.error('API Error:', error);
+      console.error('Attempting to connect to:', url);
+      console.error('Make sure Laravel backend is running with: php artisan serve');
       throw error;
     }
   }
