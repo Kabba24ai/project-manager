@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 class StoreTaskRequest extends FormRequest
 {
@@ -11,13 +12,18 @@ class StoreTaskRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array|string>
+     */
     public function rules(): array
     {
         return [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'priority' => 'sometimes|in:low,medium,high,urgent',
-            'task_type' => 'sometimes|in:general,equipmentId,customerName,feature,bug,design',
+            'priority' => ['sometimes', 'in:low,medium,high,urgent'],
+            'task_type' => ['sometimes', 'in:general,equipmentId,customerName,feature,bug,design'],
             'assigned_to' => 'required|exists:users,id',
             'start_date' => 'nullable|date',
             'due_date' => 'nullable|date|after_or_equal:start_date',
@@ -26,11 +32,13 @@ class StoreTaskRequest extends FormRequest
             'tags.*' => 'string',
             'equipment_id' => 'nullable|integer',
             'customer_id' => 'nullable|integer',
+            // Laravel 12 enhanced file validation
             'attachments' => 'nullable|array|max:10',
             'attachments.*' => [
                 'file',
                 'max:102400', // 100MB in KB
-                'mimes:jpg,jpeg,png,gif,webp,bmp,svg,mp4,mov,avi,webm,mkv,pdf,doc,docx,txt'
+                'mimes:jpg,jpeg,png,gif,webp,bmp,svg,mp4,mov,avi,webm,mkv,pdf,doc,docx,txt',
+                'extensions:jpg,jpeg,png,gif,webp,bmp,svg,mp4,mov,avi,webm,mkv,pdf,doc,docx,txt'
             ],
         ];
     }
@@ -43,13 +51,14 @@ class StoreTaskRequest extends FormRequest
             'attachments.max' => 'Maximum 10 files allowed.',
             'attachments.*.max' => 'Each file must not exceed 100MB.',
             'attachments.*.mimes' => 'File type not supported. Allowed: Images, Videos, PDFs, Documents.',
+            'attachments.*.extensions' => 'File extension not allowed.',
         ];
     }
 
     /**
-     * Prepare the data for validation
+     * Prepare the data for validation (Laravel 12 compatible)
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         // Set default values if not provided
         $this->merge([

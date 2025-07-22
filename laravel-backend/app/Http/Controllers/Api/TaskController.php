@@ -11,10 +11,14 @@
  use App\Models\TaskList;
  use Illuminate\Http\JsonResponse;
  use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
  class TaskController extends Controller
  {
-     public function index(TaskList $taskList): JsonResponse
+    /**
+     * Get all tasks for a task list
+     */
+    public function index(TaskList $taskList): JsonResponse
      {
          $this->authorize('view', $taskList->project);
 
@@ -27,7 +31,10 @@
          ]);
      }
 
-     public function store(StoreTaskRequest $request, TaskList $taskList): JsonResponse
+    /**
+     * Create a new task (Laravel 12 compatible)
+     */
+    public function store(StoreTaskRequest $request, TaskList $taskList): JsonResponse
      {
          $this->authorize('update', $taskList->project);
 
@@ -42,9 +49,12 @@
          return response()->json([
              'task' => new TaskResource($task),
              'message' => 'Task created successfully',
-         ], 201);
+        ], Response::HTTP_CREATED);
      }
 
+    /**
+     * Get a specific task
+     */
      public function show(Task $task): JsonResponse
      {
          $this->authorize('view', $task->project);
@@ -62,6 +72,9 @@
          ]);
      }
 
+    /**
+     * Update a task
+     */
      public function update(UpdateTaskRequest $request, Task $task): JsonResponse
      {
          $this->authorize('update', $task->project);
@@ -74,7 +87,7 @@
              if ($newTaskList->project_id !== $task->project_id) {
                  return response()->json([
                      'message' => 'Task list must belong to the same project',
-                 ], 422);
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
              }
          }
 
@@ -88,6 +101,9 @@
          ]);
      }
 
+    /**
+     * Delete a task
+     */
      public function destroy(Task $task): JsonResponse
      {
          $this->authorize('update', $task->project);
@@ -99,6 +115,9 @@
          ]);
      }
 
+    /**
+     * Move task to different task list
+     */
      public function moveToList(Request $request, Task $task): JsonResponse
      {
          $this->authorize('update', $task->project);
@@ -112,7 +131,7 @@
          if ($newTaskList->project_id !== $task->project_id) {
              return response()->json([
                  'message' => 'Task list must belong to the same project',
-             ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
          }
 
          $task->update(['task_list_id' => $request->task_list_id]);
@@ -126,7 +145,7 @@
      }
 +
 +    /**
-+     * Create task with file attachments
+     * Create task with file attachments (Laravel 12 compatible)
 +     */
 +    public function storeWithAttachments(StoreTaskRequest $request, TaskList $taskList): JsonResponse
 +    {
@@ -142,7 +161,8 @@
 +        // Handle file attachments if provided
 +        if ($request->hasFile('attachments')) {
 +            foreach ($request->file('attachments') as $file) {
-+                $filename = time() . '_' . $file->getClientOriginalName();
+                // Laravel 12 secure filename generation
+                $filename = \Illuminate\Support\Str::uuid() . '.' . $file->getClientOriginalExtension();
 +                $path = $file->storeAs('task_attachments', $filename, 'public');
 +
 +                $task->attachments()->create([
@@ -161,6 +181,6 @@
 +        return response()->json([
 +            'task' => new TaskResource($task),
 +            'message' => 'Task created successfully with attachments',
-+        ], 201);
+        ], Response::HTTP_CREATED);
 +    }
  }
