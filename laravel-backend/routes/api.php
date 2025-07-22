@@ -57,6 +57,15 @@ Route::get('/health', function () {
         'laravel_version' => app()->version(),
     ]);
 });
+
+// Public test endpoint for development
+Route::get('/test', function () {
+    return response()->json([
+        'message' => 'API is working',
+        'timestamp' => now()->toISOString(),
+    ]);
+});
+
 // Authentication Routes
 Route::prefix('auth')->group(function () {
     Route::post('/login', LoginController::class);

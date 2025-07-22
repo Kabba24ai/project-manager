@@ -251,12 +251,23 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ onViewChange }) => {
 
       const response = await createProject(projectData);
       
+      // Show success message
+      if (response.data?.message) {
+        console.log(response.data.message);
+      }
+      
       // Success - redirect back to dashboard
       onViewChange('dashboard');
     } catch (error) {
       console.error('Error creating project:', error);
-      // You might want to show an error message to the user here
-      alert('Failed to create project. Please try again.');
+      
+      // Don't show error for mock data fallback
+      if (!error.message?.includes('mock data')) {
+        alert('Failed to create project. Please try again.');
+      } else {
+        // Still redirect to dashboard even with mock data
+        onViewChange('dashboard');
+      }
     } finally {
       setLoading(false);
     }
