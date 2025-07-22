@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\TaskLists;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller as BaseController;
 use App\Http\Requests\StoreTaskListRequest;
 use App\Http\Resources\TaskListResource;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
-class StoreController extends Controller
+class StoreController extends BaseController
 {
     /**
      * Create a new task list (Laravel 12 compatible)

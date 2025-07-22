@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\TaskLists;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller as BaseController;
 use App\Http\Resources\TaskListResource;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 
-class IndexController extends Controller
+class IndexController extends BaseController
 {
     /**
      * Get all task lists for a project (Laravel 12 compatible)

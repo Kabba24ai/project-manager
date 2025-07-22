@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\TaskLists;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller as BaseController;
 use App\Http\Requests\UpdateTaskListRequest;
 use App\Http\Resources\TaskListResource;
 use App\Models\TaskList;
 use Illuminate\Http\JsonResponse;
 
-class UpdateController extends Controller
+class UpdateController extends BaseController
 {
     /**
      * Update a task list (Laravel 12 compatible)

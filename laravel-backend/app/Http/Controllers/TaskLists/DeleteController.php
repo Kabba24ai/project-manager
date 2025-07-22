@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\TaskLists;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller as BaseController;
 use App\Models\TaskList;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
-class DeleteController extends Controller
+class DeleteController extends BaseController
 {
     /**
      * Delete a task list (Laravel 12 compatible)
