@@ -200,31 +200,6 @@ class ApiService {
   async getCurrentUser() {
     return this.request<{ user: any }>('/auth/user');
   }
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (response.data?.token) {
-      this.token = response.data.token;
-      localStorage.setItem('auth_token', this.token);
-      if (response.data.expires_at) {
-        localStorage.setItem('token_expires_at', response.data.expires_at);
-      }
-    }
-
-    return response;
-  }
-
-  async logout() {
-    await this.request('/auth/logout', { method: 'POST' });
-    this.token = null;
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('token_expires_at');
-  }
-
-  async getCurrentUser() {
-    return this.request<any>('/auth/user');
-  }
 
   // Health check for Laravel 12
   async checkHealth() {
@@ -295,7 +270,7 @@ class ApiService {
       if (params?.page) searchParams.append('page', params.page.toString());
       
       const query = searchParams.toString();
-      return this.request<{ projects: any[] }>(`/projects${query}`);
+      return this.request<{ projects: any[] }>(`/projects${query ? `?${query}` : ''}`);
     } catch (error) {
       console.log('Falling back to mock data for projects');
       return this.getMockProjects();
