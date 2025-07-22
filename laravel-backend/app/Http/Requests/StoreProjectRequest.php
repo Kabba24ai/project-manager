@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 class StoreProjectRequest extends FormRequest
 {
@@ -11,14 +12,19 @@ class StoreProjectRequest extends FormRequest
         return true; // Authorization handled in controller
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array|string>
+     */
     public function rules(): array
     {
         return [
             // Step 1: Basic Information
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:5000',
-            'priority' => 'sometimes|in:low,medium,high,urgent',
-            'status' => 'sometimes|in:active,planning,on-hold',
+            'priority' => ['sometimes', 'in:low,medium,high,urgent'],
+            'status' => ['sometimes', 'in:active,planning,on-hold'],
             'start_date' => 'nullable|date|after_or_equal:today',
             'due_date' => 'nullable|date|after_or_equal:start_date',
             'budget' => 'nullable|numeric|min:0|max:999999999.99',

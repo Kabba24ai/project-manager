@@ -1,6 +1,6 @@
 # Task Master K - Project Management Application
 
-A modern project management application built with React (frontend) and Laravel (backend).
+A modern project management application built with React (frontend) and Laravel 12 (backend).
 
 ## Features
 
@@ -20,16 +20,18 @@ A modern project management application built with React (frontend) and Laravel 
 - **Vite** for build tooling
 
 ### Backend
-- **Laravel 10** with PHP 8.1+
-- **Laravel Sanctum** for API authentication
+- **Laravel 12** with PHP 8.2+
+- **Laravel Sanctum 4.0** for API authentication with token expiration
 - **MySQL** database
 - **Domain-driven architecture** with single responsibility controllers
+- **Model Observers** for automatic task list creation
+- **Enhanced validation** with Laravel 12 features
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
-- PHP 8.1+ and Composer
+- Node.js 18+ and npm  
+- PHP 8.2+ and Composer
 - MySQL 8.0+
 
 ### Frontend Setup
@@ -101,24 +103,37 @@ php artisan storage:link
 php artisan serve
 ```
 
+## Laravel 12 New Features Used
+
+- **Enhanced Type Declarations**: Proper return types for all methods
+- **Model Observers**: Automatic task list creation via ProjectObserver
+- **Improved Validation**: Laravel 12 validation rule syntax
+- **Token Expiration**: Sanctum tokens with 30-day expiration
+- **Health Check Endpoint**: `/api/health` for monitoring
+- **Pagination Support**: Built-in pagination for large datasets
+- **Enhanced CORS**: Improved cross-origin request handling
+
 ## API Integration
 
-The React frontend communicates with the Laravel backend through a RESTful API:
+The React frontend communicates with the Laravel 12 backend through a RESTful API:
 
 ### Authentication
 - `POST /api/auth/login` - User login
 - `POST /api/auth/logout` - User logout
 - `GET /api/auth/user` - Get current user
 
+### Health Check
+- `GET /api/health` - Backend health status and Laravel version
+
 ### Projects
-- `GET /api/projects` - List projects
+- `GET /api/projects` - List projects (with pagination support)
 - `POST /api/projects` - Create project
 - `GET /api/projects/{id}` - Get project details
 - `PUT /api/projects/{id}` - Update project
 - `DELETE /api/projects/{id}` - Delete project
 
 ### Users
-- `GET /api/users` - List users (with filtering)
+- `GET /api/users` - List users (with filtering and pagination)
 - `GET /api/users/managers` - List project managers
 
 ### Task Lists & Tasks

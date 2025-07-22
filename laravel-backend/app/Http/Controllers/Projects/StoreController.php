@@ -8,7 +8,9 @@ use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Models\TaskList;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class StoreController extends Controller
 {
@@ -17,7 +19,7 @@ class StoreController extends Controller
      */
     public function __invoke(StoreProjectRequest $request): JsonResponse
     {
-        $this->authorize('create', Project::class);
+        Gate::authorize('create', Project::class);
 
         DB::beginTransaction();
         
@@ -53,7 +55,7 @@ class StoreController extends Controller
             return response()->json([
                 'project' => new ProjectResource($project),
                 'message' => 'Project created successfully',
-            ], 201);
+            ], Response::HTTP_CREATED);
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -61,7 +63,7 @@ class StoreController extends Controller
             return response()->json([
                 'message' => 'Failed to create project',
                 'error' => $e->getMessage()
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 

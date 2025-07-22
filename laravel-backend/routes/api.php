@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 // Domain: Authentication
 use App\Http\Controllers\Auth\LoginController;
@@ -44,10 +45,18 @@ use App\Http\Controllers\UsersController;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes - Domain Driven Architecture
+| API Routes - Laravel 12 with Domain Driven Architecture
 |--------------------------------------------------------------------------
 */
 
+// Health check endpoint
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now()->toISOString(),
+        'laravel_version' => app()->version(),
+    ]);
+});
 // Authentication Routes
 Route::prefix('auth')->group(function () {
     Route::post('/login', LoginController::class);

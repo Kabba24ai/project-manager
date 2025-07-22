@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
@@ -15,19 +16,21 @@ class LoginController extends Controller
      */
     public function __invoke(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (!Auth::attempt($validated)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
         $user = Auth::user();
-        $token = $user->createToken('api-token')->plainTextToken;
+        
+        // Laravel 12 Sanctum token creation with abilities
+        $token = $user->createToken('api-token', ['*'], now()->addDays(30))->plainTextToken;
 
         return response()->json([
             'user' => [
@@ -38,6 +41,7 @@ class LoginController extends Controller
                 'role' => $user->role,
             ],
             'token' => $token,
+            'expires_at' => now()->addDays(30)->toISOString(),
             'message' => 'Login successful',
         ]);
     }

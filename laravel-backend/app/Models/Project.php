@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 
+#[ObservedBy([\App\Observers\ProjectObserver::class])]
 class Project extends Model
 {
     use HasFactory;
@@ -29,6 +32,11 @@ class Project extends Model
         'project_manager_id',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected $casts = [
         'start_date' => 'date',
         'due_date' => 'date',
@@ -97,24 +105,24 @@ class Project extends Model
     }
 
     // Scopes
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
     }
 
-    public function scopeForUser($query, User $user)
+    public function scopeForUser(Builder $query, User $user): Builder
     {
         return $query->whereHas('team', function ($q) use ($user) {
             $q->where('user_id', $user->id);
         })->orWhere('created_by', $user->id);
     }
 
-    public function scopeByPriority($query, $priority)
+    public function scopeByPriority(Builder $query, string $priority): Builder
     {
         return $query->where('priority', $priority);
     }
 
-    public function scopeByStatus($query, $status)
+    public function scopeByStatus(Builder $query, string $status): Builder
     {
         return $query->where('status', $status);
     }

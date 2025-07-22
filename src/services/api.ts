@@ -5,6 +5,12 @@ interface ApiResponse<T> {
   data?: T;
   message?: string;
   errors?: Record<string, string[]>;
+  pagination?: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
 }
 
 class ApiService {
@@ -68,6 +74,7 @@ class ApiService {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
       ...options.headers,
     };
 
@@ -76,6 +83,17 @@ class ApiService {
     }
 
     try {
+      // Check health endpoint first for Laravel 12
+      if (!this.useMockData && endpoint !== '/health') {
+        try {
+          await fetch(`${API_BASE_URL}/health`);
+        } catch (healthError) {
+          console.warn('Laravel backend health check failed, using mock data');
+          this.useMockData = true;
+          throw new Error('Backend unavailable');
+        }
+      }
+
       const response = await fetch(url, {
         ...options,
         headers,
@@ -109,6 +127,9 @@ class ApiService {
     if (response.data?.token) {
       this.token = response.data.token;
       localStorage.setItem('auth_token', this.token);
+      if (response.data.expires_at) {
+        localStorage.setItem('token_expires_at', response.data.expires_at);
+      }
     }
 
     return response;
@@ -118,14 +139,24 @@ class ApiService {
     await this.request('/auth/logout', { method: 'POST' });
     this.token = null;
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('token_expires_at');
   }
 
   async getCurrentUser() {
     return this.request<any>('/auth/user');
   }
 
+  // Health check for Laravel 12
+  async checkHealth() {
+    try {
+      return await this.request<{ status: string; timestamp: string; laravel_version: string }>('/health');
+    } catch (error) {
+      this.useMockData = true;
+      return { data: { status: 'mock', timestamp: new Date().toISOString(), laravel_version: 'mock' } };
+    }
+  }
   // Users
-  async getUsers(params?: { role?: string; search?: string }) {
+  async getUsers(params?: { role?: string; search?: string; per_page?: number; page?: number }) {
     if (this.useMockData) {
       console.log('Using mock data for users');
       return this.getMockUsers();
@@ -135,6 +166,8 @@ class ApiService {
       const searchParams = new URLSearchParams();
       if (params?.role) searchParams.append('role', params.role);
       if (params?.search) searchParams.append('search', params.search);
+      if (params?.per_page) searchParams.append('per_page', params.per_page.toString());
+      if (params?.page) searchParams.append('page', params.page.toString());
       
       const query = searchParams.toString();
       return this.request<{ users: any[] }>(`/users${query ? `?${query}` : ''}`);
@@ -169,14 +202,19 @@ class ApiService {
   }
 
   // Projects
-  async getProjects(status?: string) {
+  async getProjects(params?: { status?: string; per_page?: number; page?: number }) {
     if (this.useMockData) {
       console.log('Using mock data for projects');
       return this.getMockProjects();
     }
     
     try {
-      const query = status ? `?status=${status}` : '';
+      const searchParams = new URLSearchParams();
+      if (params?.status) searchParams.append('status', params.status);
+      if (params?.per_page) searchParams.append('per_page', params.per_page.toString());
+      if (params?.page) searchParams.append('page', params.page.toString());
+      
+      const query = searchParams.toString();
       return this.request<{ projects: any[] }>(`/projects${query}`);
     } catch (error) {
       console.log('Falling back to mock data for projects');
