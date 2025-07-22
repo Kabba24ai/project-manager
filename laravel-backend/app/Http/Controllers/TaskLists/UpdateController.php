@@ -11,13 +11,15 @@ use Illuminate\Http\JsonResponse;
 class UpdateController extends Controller
 {
     /**
-     * Update a task list
+     * Update a task list (Laravel 12 compatible)
      */
     public function __invoke(UpdateTaskListRequest $request, TaskList $taskList): JsonResponse
     {
         $this->authorize('update', $taskList->project);
 
         $taskList->update($request->validated());
+
+        $taskList->load(['tasks']);
 
         return response()->json([
             'task_list' => new TaskListResource($taskList),

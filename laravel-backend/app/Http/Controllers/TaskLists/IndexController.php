@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 class IndexController extends Controller
 {
     /**
-     * Get all task lists for a project
+     * Get all task lists for a project (Laravel 12 compatible)
      */
     public function __invoke(Project $project): JsonResponse
     {
@@ -18,6 +18,7 @@ class IndexController extends Controller
 
         $taskLists = $project->taskLists()
             ->with(['tasks.assignedTo', 'tasks.comments'])
+            ->orderBy('order')
             ->get();
 
         return response()->json([
