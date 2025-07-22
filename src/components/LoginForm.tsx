@@ -68,15 +68,38 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
         setErrors({ general: 'Login failed. Please try again.' });
       }
     } catch (error: any) {
-      console.error('Login error:', error);
-      
-      if (error.message?.includes('credentials')) {
+      // Handle different types of errors
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('Backend unavailable')) {
+        // Backend connection error - try mock login
+        console.warn('Backend unavailable, attempting mock login');
+        
+        // Check if credentials match demo credentials
+        if (formData.email === 'admin@taskmaster.com' && formData.password === 'password') {
+          const mockUser = {
+            id: 1,
+            name: 'Admin User',
+            email: 'admin@taskmaster.com',
+            role: 'admin',
+            avatar: 'AU'
+          };
+          
+          // Store mock token
+          localStorage.setItem('auth_token', 'mock-token-' + Date.now());
+          localStorage.setItem('token_expires_at', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
+          
+          onLoginSuccess(mockUser);
+          return;
+        } else {
+          setErrors({ 
+            general: 'Backend server is not running. Use demo credentials (admin@taskmaster.com / password) to continue with mock data, or start the Laravel backend with "php artisan serve".' 
+          });
+        }
+      } else if (error.message?.includes('credentials') || error.message?.includes('Unauthenticated')) {
         setErrors({ general: 'Invalid email or password. Please try again.' });
-      } else if (error.message?.includes('Unauthenticated')) {
-        setErrors({ general: 'Invalid credentials. Please check your email and password.' });
       } else {
         setErrors({ general: 'Login failed. Please check your connection and try again.' });
       }
+      
     } finally {
       setLoading(false);
     }

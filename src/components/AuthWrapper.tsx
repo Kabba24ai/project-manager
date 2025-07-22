@@ -25,20 +25,39 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
         const expiry = new Date(expiresAt);
         
         if (now < expiry) {
-          try {
-            const response = await apiService.getCurrentUser();
-            if (response.data?.user) {
-              setCurrentUser(response.data.user);
-              setIsAuthenticated(true);
+          // Check if it's a mock token
+          if (token.startsWith('mock-token-')) {
+            // Use mock user data
+            const mockUser = {
+              id: 1,
+              name: 'Admin User',
+              email: 'admin@taskmaster.com',
+              role: 'admin',
+              avatar: 'AU'
+            };
+            setUser(mockUser);
+            setIsAuthenticated(true);
+          } else {
+            // Try to get real user data
+            try {
+              const response = await apiService.getCurrentUser();
+              if (response.data?.user) {
+                setUser(response.data.user);
+                setIsAuthenticated(true);
+              } else {
+                // Clear invalid token
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('token_expires_at');
+              }
+            } catch (error) {
+              console.warn('Failed to get current user, clearing token');
+              localStorage.removeItem('auth_token');
+              localStorage.removeItem('token_expires_at');
             } else {
               // Invalid token, clear storage
               localStorage.removeItem('auth_token');
               localStorage.removeItem('token_expires_at');
             }
-          } catch (error) {
-            console.log('Token validation failed, user needs to login');
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('token_expires_at');
           }
         } else {
           // Token expired, clear storage

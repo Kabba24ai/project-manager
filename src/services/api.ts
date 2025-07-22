@@ -83,17 +83,6 @@ class ApiService {
     }
 
     try {
-      // Check health endpoint first for Laravel 12
-      if (!this.useMockData && endpoint !== '/health') {
-        try {
-          await fetch(`${API_BASE_URL}/health`);
-        } catch (healthError) {
-          console.warn('Laravel backend health check failed, using mock data');
-          this.useMockData = true;
-          throw new Error('Backend unavailable');
-        }
-      }
-
       const response = await fetch(url, {
         ...options,
         headers,
@@ -111,8 +100,6 @@ class ApiService {
       if (!response.ok) {
         // Handle authentication errors specifically
         if (response.status === 401) {
-          console.warn('Authentication failed, using mock data');
-          this.useMockData = true;
           throw new Error('Authentication required - using mock data');
         }
         throw new Error(data.message || 'API request failed');
@@ -120,19 +107,18 @@ class ApiService {
 
       return data;
     } catch (error) {
-      console.error('API Error:', error);
-      console.error('Attempting to connect to:', url);
+      // Only log connection errors, not authentication errors
+      if (!error.message?.includes('Authentication')) {
+        console.warn('API connection failed:', error.message);
+        console.warn('Attempting to connect to:', url);
+        console.warn('Make sure Laravel backend is running with: php artisan serve');
+      }
       
       // Handle authentication errors
       if (error.message?.includes('Unauthenticated') || error.message?.includes('Authentication')) {
-        console.warn('Authentication required - switching to mock data mode');
         this.useMockData = true;
-      } else {
-        console.error('Make sure Laravel backend is running with: php artisan serve');
       }
       
-      // Set flag to use mock data for subsequent requests
-      this.useMockData = true;
       throw error;
     }
   }
