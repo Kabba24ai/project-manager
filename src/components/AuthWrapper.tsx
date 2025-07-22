@@ -53,10 +53,6 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
               console.warn('Failed to get current user, clearing token');
               localStorage.removeItem('auth_token');
               localStorage.removeItem('token_expires_at');
-            } else {
-              // Invalid token, clear storage
-              localStorage.removeItem('auth_token');
-              localStorage.removeItem('token_expires_at');
             }
           }
         } else {
