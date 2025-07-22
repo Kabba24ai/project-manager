@@ -63,7 +63,7 @@ export function useApi<T>() {
 
 // Specific hooks for common operations
 export function useUsers() {
-  const { data, loading, error, execute } = useApi<{ users: any[] }>();
+  const { data, loading, error, pagination, execute } = useApi<{ users: any[] }>();
   
   const fetchUsers = useCallback((params?: { role?: string; search?: string; per_page?: number; page?: number }) => {
     return execute(() => apiService.getUsers(params));
@@ -84,7 +84,7 @@ export function useUsers() {
 }
 
 export function useProjects() {
-  const { data, loading, error, execute } = useApi<{ projects: any[] }>();
+  const { data, loading, error, pagination, execute } = useApi<{ projects: any[] }>();
   
   const fetchProjects = useCallback((params?: { status?: string; per_page?: number; page?: number }) => {
     return execute(() => apiService.getProjects(params));
