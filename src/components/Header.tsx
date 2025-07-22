@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Bell, Search, Settings } from 'lucide-react';
+import { User, Bell, Search, Settings, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -7,9 +7,10 @@ interface HeaderProps {
     name: string;
     avatar: string;
   };
+  onLogout?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, user }) => {
+const Header: React.FC<HeaderProps> = ({ title, user, onLogout }) => {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,6 +47,17 @@ const Header: React.FC<HeaderProps> = ({ title, user }) => {
             <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
               <Settings className="h-5 w-5" />
             </button>
+
+            {/* Logout */}
+            {onLogout && (
+              <button 
+                onClick={onLogout}
+                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            )}
 
             {/* User Profile */}
             <div className="flex items-center space-x-3">

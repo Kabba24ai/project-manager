@@ -5,9 +5,14 @@ import { useProjects } from '../hooks/useApi';
 
 interface DashboardProps {
   onViewChange: (view: ViewType, data?: any) => void;
+  authContext?: {
+    user: any;
+    isAuthenticated: boolean;
+    logout: () => void;
+  };
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onViewChange, authContext }) => {
   // API hooks
   const { projects: apiProjects, loading: projectsLoading, fetchProjects } = useProjects();
 
@@ -329,8 +334,25 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
           <div className="flex justify-between items-center h-16">
             <h1 className="text-xl font-semibold text-gray-900">Task Master K</h1>
             <div className="flex items-center space-x-2">
+              {authContext?.user && (
+                <>
+                  <Users className="w-5 h-5 text-gray-400" />
+                  <span className="text-sm text-gray-700">{authContext.user.name}</span>
+                  <span className="text-xs text-gray-500">({authContext.user.role})</span>
+                  <button
+                    onClick={authContext.logout}
+                    className="ml-4 px-3 py-1 text-sm text-red-600 hover:text-red-800 border border-red-300 rounded hover:bg-red-50 transition-colors"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
+              {!authContext?.user && (
+                <>
               <Users className="w-5 h-5 text-gray-400" />
               <span className="text-sm text-gray-700">Admin User</span>
+                </>
+              )}
             </div>
           </div>
         </div>

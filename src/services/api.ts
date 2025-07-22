@@ -139,7 +139,67 @@ class ApiService {
 
   // Authentication
   async login(email: string, password: string) {
-    const response = await this.request<{ user: any; token: string }>('/auth/login', {
+    try {
+      const response = await this.request<{ user: any; token: string; expires_at?: string }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.data?.token) {
+        this.token = response.data.token;
+        localStorage.setItem('auth_token', this.token);
+        if (response.data.expires_at) {
+          localStorage.setItem('token_expires_at', response.data.expires_at);
+        }
+        this.useMockData = false; // Reset mock data flag on successful login
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  }
+
+  async register(userData: { name: string; email: string; password: string; password_confirmation: string; role: string }) {
+    try {
+      const response = await this.request<{ user: any; token: string; expires_at?: string }>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      });
+
+      if (response.data?.token) {
+        this.token = response.data.token;
+        localStorage.setItem('auth_token', this.token);
+        if (response.data.expires_at) {
+          localStorage.setItem('token_expires_at', response.data.expires_at);
+        }
+        this.useMockData = false; // Reset mock data flag on successful registration
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  }
+
+  async logout() {
+    try {
+      await this.request('/auth/logout', { method: 'POST' });
+    } catch (error) {
+      console.error('Logout request failed:', error);
+      // Continue with local cleanup even if server request fails
+    } finally {
+      this.token = null;
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('token_expires_at');
+    }
+  }
+
+  async getCurrentUser() {
+    return this.request<{ user: any }>('/auth/user');
+  }
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AuthWrapper from './components/AuthWrapper';
 import { ViewType, Project, Task, TaskList } from './types';
 import Dashboard from './components/Dashboard';
 import ProjectDetail from './components/ProjectDetail';
@@ -6,7 +7,15 @@ import AddTaskForm from './components/AddTaskForm';
 import AddProjectForm from './components/AddProjectForm';
 import AddTaskListForm from './components/AddTaskListForm';
 
-const App: React.FC = () => {
+interface AppProps {
+  authContext?: {
+    user: any;
+    isAuthenticated: boolean;
+    logout: () => void;
+  };
+}
+
+const AppContent: React.FC<AppProps> = ({ authContext }) => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -194,9 +203,17 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="App">
+    <div className="App" data-user={authContext?.user?.name}>
       {renderCurrentView()}
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthWrapper>
+      <AppContent />
+    </AuthWrapper>
   );
 };
 
