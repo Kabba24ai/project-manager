@@ -381,6 +381,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange }) => {
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-gray-500">Loading projects...</p>
+                <p className="text-xs text-gray-400 mt-2">If this takes too long, make sure Laravel backend is running</p>
               </div>
             ) : filteredProjects.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
