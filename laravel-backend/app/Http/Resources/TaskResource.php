@@ -37,6 +37,24 @@ class TaskResource extends JsonResource
             'task_list' => new TaskListResource($this->whenLoaded('taskList')),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'attachments' => AttachmentResource::collection($this->whenLoaded('attachments')),
+
+            // Additional computed fields
+            'is_overdue' => $this->due_date && $this->due_date->isPast() && $this->status !== 'Done',
+            'days_until_due' => $this->due_date ? now()->diffInDays($this->due_date, false) : null,
+            'formatted_priority' => ucfirst($this->priority),
+            'formatted_task_type' => $this->getFormattedTaskType(),
         ];
+    }
+
+    /**
+     * Get formatted task type for display
+     */
+    private function getFormattedTaskType(): string
+    {
+        return match($this->task_type) {
+            'equipmentId' => 'Equipment ID',
+            'customerName' => 'Customer',
+            default => ucfirst($this->task_type)
+        };
     }
 }

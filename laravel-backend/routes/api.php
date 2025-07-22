@@ -110,6 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('task-lists/{taskList}/tasks')->group(function () {
         Route::get('/', TaskIndexController::class);
         Route::post('/', TaskStoreController::class);
+        Route::post('/with-attachments', [TaskController::class, 'storeWithAttachments']);
     });
     
     Route::prefix('tasks')->group(function () {

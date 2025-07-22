@@ -368,6 +368,50 @@ class ApiService {
     });
   }
 
+  async createTaskWithAttachments(taskListId: number, formData: FormData) {
+    // For file uploads, we need to use FormData and not set Content-Type header
+    const url = `${API_BASE_URL}/task-lists/${taskListId}/tasks/with-attachments`;
+    
+    const headers: HeadersInit = {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    };
+
+    if (this.token) {
+      headers.Authorization = `Bearer ${this.token}`;
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = { message: await response.text() };
+      }
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Authentication required - using mock data');
+        }
+        throw new Error(data.message || 'API request failed');
+      }
+
+      return data;
+    } catch (error) {
+      if (!error.message?.includes('Authentication')) {
+        console.warn('API connection failed:', error.message);
+      }
+      throw error;
+    }
+  }
+
   async updateTask(taskId: number, taskData: any) {
     return this.request<{ task: any }>(`/tasks/${taskId}`, {
       method: 'PUT',

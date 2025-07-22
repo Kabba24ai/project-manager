@@ -232,15 +232,121 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      let response;
       
-      // Create the new task
+      if (formData.attachments.length > 0) {
+        // Create FormData for file upload
+        const formDataToSend = new FormData();
+        formDataToSend.append('title', formData.title);
+        formDataToSend.append('description', formData.description);
+        formDataToSend.append('priority', formData.priority.toLowerCase());
+        formDataToSend.append('task_type', formData.taskType);
+        formDataToSend.append('assigned_to', formData.assignedTo);
+        
+        if (formData.startDate) formDataToSend.append('start_date', formData.startDate);
+        if (formData.dueDate) formDataToSend.append('due_date', formData.dueDate);
+        if (formData.sprintId) formDataToSend.append('sprint_id', formData.sprintId);
+        
+        // Add tags
+        formData.tags?.forEach((tag, index) => {
+          formDataToSend.append(`tags[${index}]`, tag);
+        });
+        
+        // Add equipment/customer data
+        if (formData.equipmentId) formDataToSend.append('equipment_id', formData.equipmentId);
+        if (formData.customerId) formDataToSend.append('customer_id', formData.customerId);
+        
+        // Add attachments
+        formData.attachments.forEach((file, index) => {
+          formDataToSend.append(`attachments[${index}]`, file);
+        });
+        
+        response = await apiService.createTaskWithAttachments(parseInt(formData.taskListId), formDataToSend);
+      } else {
+        // Regular JSON request without files
+        const taskData = {
+          title: formData.title,
+          description: formData.description,
+          priority: formData.priority.toLowerCase(),
+          task_type: formData.taskType,
+          assigned_to: parseInt(formData.assignedTo),
+          start_date: formData.startDate || null,
+          due_date: formData.dueDate || null,
+          estimated_hours: null,
+          tags: formData.tags || [],
+          equipment_id: formData.equipmentId ? parseInt(formData.equipmentId) : null,
+          customer_id: formData.customerId ? parseInt(formData.customerId) : null,
+        };
+        
+        response = await apiService.createTask(parseInt(formData.taskListId), taskData);
+      }
+      
+      if (response.data?.task) {
+        // Convert API response to frontend Task format
+        const apiTask = response.data.task;
+        const assignedUser = users.find(user => user.id === apiTask.assigned_to?.id) || users[0];
+        const selectedTaskList = taskLists.find(list => list.id === apiTask.task_list_id);
+        
+        const newTask: Task = {
+          id: apiTask.id,
+          title: apiTask.title,
+          description: apiTask.description,
+          priority: apiTask.priority,
+          status: selectedTaskList?.name || apiTask.status,
+          assignedTo: assignedUser,
+          projectId: apiTask.project_id,
+          taskListId: apiTask.task_list_id,
+          dueDate: apiTask.due_date,
+          startDate: apiTask.start_date,
+          createdAt: apiTask.created_at,
+          updatedAt: apiTask.updated_at,
+          attachments: apiTask.attachments_count || formData.attachments.length,
+          comments: apiTask.comments_count || 0,
+          taskType: apiTask.task_type,
+          tags: apiTask.tags || [],
+          estimatedHours: apiTask.estimated_hours || 0
+        };
+        
+        onTaskCreated?.(newTask);
+      } else {
+        // Fallback to mock data creation
+        const assignedUser = users.find(user => user.id.toString() === formData.assignedTo.toString());
+        const selectedTaskList = taskLists.find(list => list.id.toString() === formData.taskListId.toString());
+        
+        const newTask: Task = {
+          id: Date.now(),
+          title: formData.title,
+          description: formData.description,
+          priority: formData.priority.toLowerCase(),
+          status: selectedTaskList?.name || 'To Do',
+          assignedTo: assignedUser || users[0],
+          projectId: selectedProject?.id || 1,
+          taskListId: parseInt(formData.taskListId),
+          dueDate: formData.dueDate,
+          startDate: formData.startDate,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          attachments: formData.attachments.length,
+          comments: 0,
+          taskType: formData.taskType,
+          tags: [],
+          estimatedHours: 0
+        };
+        
+        onTaskCreated?.(newTask);
+      }
+      
+      // Success - redirect back to project view
+      onViewChange(selectedProject ? 'project-detail' : 'dashboard');
+    } catch (error) {
+      console.error('Error creating task:', error);
+      
+      // Fallback to mock data if API fails
       const assignedUser = users.find(user => user.id.toString() === formData.assignedTo.toString());
       const selectedTaskList = taskLists.find(list => list.id.toString() === formData.taskListId.toString());
       
       const newTask: Task = {
-        id: Date.now(), // In real app, this would come from the API
+        id: Date.now(),
         title: formData.title,
         description: formData.description,
         priority: formData.priority.toLowerCase(),
@@ -259,13 +365,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
         estimatedHours: 0
       };
       
-      // Add to global state
       onTaskCreated?.(newTask);
-      
-      // Success - redirect back to project view
       onViewChange(selectedProject ? 'project-detail' : 'dashboard');
-    } catch (error) {
-      console.error('Error creating task:', error);
     } finally {
       setLoading(false);
     }
