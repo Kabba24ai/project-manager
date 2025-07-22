@@ -99,11 +99,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('projects/{project}/task-lists')->group(function () {
         Route::get('/', TaskListIndexController::class);
         Route::post('/', TaskListStoreController::class);
+        Route::post('/reorder', [TaskListController::class, 'reorder']);
     });
     
     Route::prefix('task-lists')->group(function () {
         Route::put('/{taskList}', TaskListUpdateController::class);
         Route::delete('/{taskList}', TaskListDeleteController::class);
+        Route::get('/{taskList}', [TaskListController::class, 'show']);
     });
     
     // Tasks Domain
