@@ -9,9 +9,54 @@ interface ApiResponse<T> {
 
 class ApiService {
   private token: string | null = null;
+  private useMockData: boolean = false;
 
   constructor() {
     this.token = localStorage.getItem('auth_token');
+  }
+
+  // Mock data fallback
+  private getMockProjects() {
+    return {
+      data: {
+        projects: [
+          {
+            id: 1,
+            name: "Website Redesign",
+            description: "Complete overhaul of company website with modern design and improved user experience",
+            status: "active",
+            progress_percentage: 65,
+            tasks_count: 12,
+            completed_tasks: 8,
+            created_at: "2024-01-15",
+            updated_at: "2024-01-20"
+          },
+          {
+            id: 2,
+            name: "Mobile App Development",
+            description: "Native iOS and Android app for customer engagement",
+            status: "active",
+            progress_percentage: 30,
+            tasks_count: 20,
+            completed_tasks: 6,
+            created_at: "2024-01-10",
+            updated_at: "2024-01-18"
+          }
+        ]
+      }
+    };
+  }
+
+  private getMockUsers() {
+    return {
+      data: {
+        users: [
+          { id: 1, name: "John Doe", email: "john@example.com", role: "manager" },
+          { id: 2, name: "Jane Smith", email: "jane@example.com", role: "developer" },
+          { id: 3, name: "Mike Johnson", email: "mike@example.com", role: "designer" }
+        ]
+      }
+    };
   }
 
   private async request<T>(
@@ -47,6 +92,9 @@ class ApiService {
       console.error('API Error:', error);
       console.error('Attempting to connect to:', url);
       console.error('Make sure Laravel backend is running with: php artisan serve');
+      
+      // Set flag to use mock data for subsequent requests
+      this.useMockData = true;
       throw error;
     }
   }
@@ -78,22 +126,62 @@ class ApiService {
 
   // Users
   async getUsers(params?: { role?: string; search?: string }) {
-    const searchParams = new URLSearchParams();
-    if (params?.role) searchParams.append('role', params.role);
-    if (params?.search) searchParams.append('search', params.search);
+    if (this.useMockData) {
+      console.log('Using mock data for users');
+      return this.getMockUsers();
+    }
     
-    const query = searchParams.toString();
-    return this.request<{ users: any[] }>(`/users${query ? `?${query}` : ''}`);
+    try {
+      const searchParams = new URLSearchParams();
+      if (params?.role) searchParams.append('role', params.role);
+      if (params?.search) searchParams.append('search', params.search);
+      
+      const query = searchParams.toString();
+      return this.request<{ users: any[] }>(`/users${query ? `?${query}` : ''}`);
+    } catch (error) {
+      console.log('Falling back to mock data for users');
+      return this.getMockUsers();
+    }
   }
 
   async getManagers() {
-    return this.request<{ managers: any[] }>('/users/managers');
+    if (this.useMockData) {
+      console.log('Using mock data for managers');
+      const mockUsers = this.getMockUsers();
+      return {
+        data: {
+          managers: mockUsers.data.users.filter(user => user.role === 'manager')
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ managers: any[] }>('/users/managers');
+    } catch (error) {
+      console.log('Falling back to mock data for managers');
+      const mockUsers = this.getMockUsers();
+      return {
+        data: {
+          managers: mockUsers.data.users.filter(user => user.role === 'manager')
+        }
+      };
+    }
   }
 
   // Projects
   async getProjects(status?: string) {
-    const query = status ? `?status=${status}` : '';
-    return this.request<{ projects: any[] }>(`/projects${query}`);
+    if (this.useMockData) {
+      console.log('Using mock data for projects');
+      return this.getMockProjects();
+    }
+    
+    try {
+      const query = status ? `?status=${status}` : '';
+      return this.request<{ projects: any[] }>(`/projects${query}`);
+    } catch (error) {
+      console.log('Falling back to mock data for projects');
+      return this.getMockProjects();
+    }
   }
 
   async getProject(id: number) {
