@@ -5,25 +5,10 @@ import { ViewType, TaskList, Task } from '../types';
 interface AddTaskFormProps {
   onViewChange: (view: ViewType, data?: any) => void;
   selectedProject?: any;
-  preSelectedTaskListId?: string | number;
-  taskLists?: TaskList[];
   onTaskCreated?: (task: Task) => void;
 }
 
-const AddTaskForm: React.FC<AddTaskFormProps> = ({ 
-  onViewChange, 
-  selectedProject, 
-  preSelectedTaskListId,
-  taskLists = [],
-  onTaskCreated 
-}) => {
-  console.log('🎨 AddTaskForm rendered with:');
-  console.log('🏗️ - selectedProject:', selectedProject);
-  console.log('🎯 - preSelectedTaskListId:', preSelectedTaskListId);
-  console.log('📋 - taskLists:', taskLists);
-  console.log('📊 - taskLists length:', taskLists?.length);
-  console.log('📝 - taskLists structure:', taskLists?.map(list => ({ id: list.id, name: list.name, projectId: list.projectId })));
-
+const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject, onTaskCreated }) => {
   // Mock project settings - this would come from the selected project
   const [projectSettings] = useState({
     taskTypes: {
@@ -33,6 +18,9 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
     },
     allowFileUploads: true
   });
+
+  // Get task lists from the selected project data - NO DEFAULT LISTS
+  const [taskLists] = useState<TaskList[]>(selectedProject?.taskLists || []);
 
   // Mock data - these would come from API calls
   const [users] = useState([
@@ -82,13 +70,14 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   ].sort((a, b) => a.name.localeCompare(b.name)));
 
   const [formData, setFormData] = useState({
+    taskType: '',
     title: '',
     description: '',
     priority: 'Medium',
     assignedTo: '',
     dueDate: '',
     sprintId: '',
-    taskListId: preSelectedTaskListId?.toString() || '',
+    taskListId: selectedProject?.preSelectedTaskListId?.toString() || '', // Pre-select if provided
     equipmentCategory: '',
     equipmentId: '',
     customerSearch: '',
@@ -209,8 +198,16 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.title.trim()) {
+    if (formData.taskType === 'general' && !formData.title.trim()) {
       newErrors.title = 'Task title is required';
+    }
+    
+    if (formData.taskType === 'equipmentId' && !formData.equipmentId) {
+      newErrors.equipmentId = 'Please select an equipment item';
+    }
+    
+    if (formData.taskType === 'customerName' && !formData.customerId) {
+      newErrors.customerId = 'Please select a customer';
     }
     
     if (!formData.description.trim()) {
@@ -235,14 +232,15 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
     setLoading(true);
     
     try {
-      // Mock API call - replace with actual API integration
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Create the new task
       const assignedUser = users.find(user => user.id.toString() === formData.assignedTo.toString());
       const selectedTaskList = taskLists.find(list => list.id.toString() === formData.taskListId.toString());
       
       const newTask: Task = {
-        id: Date.now(),
+        id: Date.now(), // In real app, this would come from the API
         title: formData.title,
         description: formData.description,
         priority: formData.priority.toLowerCase(),
@@ -256,12 +254,15 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
         updatedAt: new Date().toISOString(),
         attachments: formData.attachments.length,
         comments: 0,
-        taskType: 'general',
+        taskType: formData.taskType,
         tags: [],
         estimatedHours: 0
       };
       
+      // Add to global state
       onTaskCreated?.(newTask);
+      
+      // Success - redirect back to project view
       onViewChange(selectedProject ? 'project-detail' : 'dashboard');
     } catch (error) {
       console.error('Error creating task:', error);
@@ -308,15 +309,86 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
     return 'bg-blue-100 text-blue-600';
   };
 
+  // Helper functions for step visibility
+  const availableTaskTypes = Object.entries(projectSettings.taskTypes)
+    .filter(([_, enabled]) => enabled)
+    .map(([type, _]) => type);
+
+  const canShowStep2 = formData.taskType !== '';
+  
+  const canShowStep3 = () => {
+    if (formData.taskType === 'general' && formData.title) return true;
+    if (formData.taskType === 'equipmentId' && formData.equipmentId) return true;
+    if (formData.taskType === 'customerName' && formData.customerId) return true;
+    return false;
+  };
+
+  const canShowStep4 = canShowStep3() && formData.description;
+  const canShowActions = formData.taskType && formData.description && formData.assignedTo && formData.taskListId;
+
+  // Get equipment list based on category filter
+  const getEquipmentList = () => {
+    if (!formData.equipmentCategory) {
+      return allEquipment; // Show all equipment if no category selected
+    }
+    const selectedCategory = equipmentCategories.find(cat => cat.id.toString() === formData.equipmentCategory);
+    return selectedCategory ? selectedCategory.equipment : [];
+  };
+
+  const filteredCustomers = customers.filter(customer => 
+    customer.name.toLowerCase().includes(formData.customerSearch.toLowerCase())
+  );
+
+  const getSelectedTaskList = () => {
+    return taskLists.find(list => list.id.toString() === formData.taskListId.toString());
+  };
+
+  // Check if we have task lists available
+  if (taskLists.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleCancel}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>Back to Project</span>
+              </button>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <h1 className="text-2xl font-bold text-gray-900">Add New Task</h1>
+            </div>
+          </div>
+        </div>
+
+        {/* No Task Lists Message */}
+        <div className="max-w-2xl mx-auto px-6 py-16">
+          <div className="text-center bg-white rounded-lg border border-gray-200 p-12">
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Flag className="w-8 h-8 text-yellow-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">No Task Lists Available</h3>
+            <p className="text-gray-500 mb-6">
+              You need to create at least one task list before you can add tasks. 
+              Task lists help organize your work into categories like "To Do", "In Progress", etc.
+            </p>
+            <button
+              onClick={() => onViewChange('add-task-list', selectedProject)}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Create Task List First
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Debug Info - Remove in production */}
-      <div className="bg-yellow-50 border border-yellow-200 p-2 text-xs">
-        <strong>Debug:</strong> Project: {selectedProject?.name || 'None'}, 
-        TaskLists: {taskLists?.length || 0}, 
-        PreSelected: {preSelectedTaskListId || 'None'}
-      </div>
-      
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4">
@@ -330,10 +402,22 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
             </button>
             <div className="h-6 w-px bg-gray-300"></div>
             <h1 className="text-2xl font-bold text-gray-900">Add New Task</h1>
-            {selectedProject?.name && (
+            {selectedProject?.project?.name && (
               <>
                 <div className="h-6 w-px bg-gray-300"></div>
-                <span className="text-gray-600">{selectedProject.name}</span>
+                <span className="text-gray-600">{selectedProject.project.name}</span>
+              </>
+            )}
+            {/* Show pre-selected task list in header if available */}
+            {formData.taskListId && getSelectedTaskList() && (
+              <>
+                <div className="h-6 w-px bg-gray-300"></div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-500">to</span>
+                  <div className={`px-3 py-1 rounded-lg text-sm font-medium ${getSelectedTaskList().color}`}>
+                    {getSelectedTaskList().name}
+                  </div>
+                </div>
               </>
             )}
           </div>
@@ -342,222 +426,589 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
 
       {/* Form Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="space-y-6">
-            {/* Task Title */}
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Task Title *
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                  errors.title ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}
-                placeholder="Enter task title"
-              />
-              {errors.title && (
-                <p className="mt-2 text-sm text-red-600">{errors.title}</p>
-              )}
+        <div className="space-y-8">
+          {/* Step 1: Task Type Selection - Always Required */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">1</div>
+              <h2 className="text-lg font-semibold text-gray-900">Select Task Type</h2>
             </div>
-
-            {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={4}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none ${
-                  errors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}
-                placeholder="Describe the task requirements and goals"
-              />
-              {errors.description && (
-                <p className="mt-2 text-sm text-red-600">{errors.description}</p>
-              )}
-            </div>
-
-            {/* Priority, Assigned To, Due Date */}
+            <p className="text-gray-600 mb-6">Choose the type of task you want to create.</p>
+            
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
-                  Priority
-                </label>
-                <select
-                  id="priority"
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
-                <div className={`mt-2 px-3 py-1 rounded-full text-xs inline-block border ${getPriorityColor(formData.priority)}`}>
-                  {formData.priority} Priority
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700 mb-2">
-                  Assigned To *
-                </label>
-                <select
-                  id="assignedTo"
-                  name="assignedTo"
-                  value={formData.assignedTo}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                    errors.assignedTo ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Select team member</option>
-                  {users.map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.assignedTo && (
-                  <p className="mt-2 text-sm text-red-600">{errors.assignedTo}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  id="dueDate"
-                  name="dueDate"
-                  value={formData.dueDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                />
-              </div>
-            </div>
-
-            {/* Task List Selection */}
-            <div>
-              <label htmlFor="taskListId" className="block text-sm font-medium text-gray-700 mb-2">
-                Task List *
-              </label>
-              {taskLists && taskLists.length > 0 ? (
-                <select
-                  id="taskListId"
-                  name="taskListId"
-                  value={formData.taskListId}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                    errors.taskListId ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Select a task list</option>
-                  {taskLists.map((list) => (
-                    <option key={list.id} value={list.id}>
-                      {list.name} ({(list.tasks || []).length} tasks)
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700 text-sm font-medium">No Task Lists Available</p>
-                  <div className="text-red-600 text-xs mt-2 space-y-1">
-                    <p><strong>Debug Info:</strong></p>
-                    <p>• Project: {selectedProject?.name || 'Unknown'}</p>
-                    <p>• Project ID: {selectedProject?.id || 'Unknown'}</p>
-                    <p>• TaskLists received: {taskLists?.length || 0}</p>
-                    <p>• TaskLists type: {typeof taskLists}</p>
-                    <p>• TaskLists array: {JSON.stringify(taskLists)}</p>
-                  </div>
+              {availableTaskTypes.includes('general') && (
+                <div className="relative">
                   <button
                     type="button"
-                    onClick={() => onViewChange('add-task-list')}
-                    className="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                    onMouseEnter={() => setShowTooltip('general')}
+                    onMouseLeave={() => setShowTooltip(null)}
+                    onClick={() => setFormData(prev => ({ 
+                      ...prev, 
+                      taskType: 'general',
+                      title: '',
+                      equipmentCategory: '',
+                      equipmentId: '',
+                      customerSearch: '',
+                      customerId: ''
+                    }))}
+                    className={`w-full p-4 border-2 rounded-lg transition-all duration-200 text-center ${
+                      formData.taskType === 'general' 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                    }`}
                   >
-                    Create Task List First
+                    <div className={`w-3 h-3 rounded-full mx-auto mb-2 ${
+                      formData.taskType === 'general' ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}></div>
+                    <h3 className="font-semibold text-gray-900">General</h3>
                   </button>
+                  
+                  {showTooltip === 'general' && (
+                    <div className="absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg">
+                      <div className="text-center">
+                        Standard project task with manually entered details. Perfect for development, design, or administrative tasks.
+                      </div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  )}
                 </div>
               )}
-              {errors.taskListId && (
-                <p className="mt-2 text-sm text-red-600">{errors.taskListId}</p>
+              
+              {availableTaskTypes.includes('equipmentId') && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onMouseEnter={() => setShowTooltip('equipment')}
+                    onMouseLeave={() => setShowTooltip(null)}
+                    onClick={() => setFormData(prev => ({ 
+                      ...prev, 
+                      taskType: 'equipmentId',
+                      title: '',
+                      equipmentCategory: '',
+                      equipmentId: '',
+                      customerSearch: '',
+                      customerId: ''
+                    }))}
+                    className={`w-full p-4 border-2 rounded-lg transition-all duration-200 text-center ${
+                      formData.taskType === 'equipmentId' 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                    }`}
+                  >
+                    <div className={`w-3 h-3 rounded-full mx-auto mb-2 ${
+                      formData.taskType === 'equipmentId' ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}></div>
+                    <h3 className="font-semibold text-gray-900">Equipment ID</h3>
+                  </button>
+                  
+                  {showTooltip === 'equipment' && (
+                    <div className="absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg">
+                      <div className="text-center">
+                        Task related to specific rental equipment. Links directly to your equipment inventory and rental system.
+                      </div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {availableTaskTypes.includes('customerName') && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onMouseEnter={() => setShowTooltip('customer')}
+                    onMouseLeave={() => setShowTooltip(null)}
+                    onClick={() => setFormData(prev => ({ 
+                      ...prev, 
+                      taskType: 'customerName',
+                      title: '',
+                      equipmentCategory: '',
+                      equipmentId: '',
+                      customerSearch: '',
+                      customerId: ''
+                    }))}
+                    className={`w-full p-4 border-2 rounded-lg transition-all duration-200 text-center ${
+                      formData.taskType === 'customerName' 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                    }`}
+                  >
+                    <div className={`w-3 h-3 rounded-full mx-auto mb-2 ${
+                      formData.taskType === 'customerName' ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}></div>
+                    <h3 className="font-semibold text-gray-900">Customer</h3>
+                  </button>
+                  
+                  {showTooltip === 'customer' && (
+                    <div className="absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg">
+                      <div className="text-center">
+                        Task linked to a specific customer. Perfect for customer support, follow-ups, or customer-specific projects.
+                      </div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
+          </div>
 
-            {/* File Attachments */}
-            {projectSettings.allowFileUploads && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Attachments (Optional)
-                </label>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          {/* Step 2: Task Details - Only show after task type is selected */}
+          {canShowStep2 && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">2</div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {formData.taskType === 'general' && 'General Task Details'}
+                  {formData.taskType === 'equipmentId' && 'Equipment Selection'}
+                  {formData.taskType === 'customerName' && 'Customer Selection'}
+                </h2>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Task Title/Selection */}
+                {formData.taskType === 'general' && (
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                      Task Title *
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        errors.title ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter task title"
+                    />
+                    {errors.title && (
+                      <p className="mt-2 text-sm text-red-600">{errors.title}</p>
+                    )}
+                  </div>
+                )}
+
+                {formData.taskType === 'equipmentId' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="equipmentCategory" className="block text-sm font-medium text-gray-700 mb-2">
+                        Equipment Category (Optional Filter)
+                      </label>
+                      <select
+                        id="equipmentCategory"
+                        name="equipmentCategory"
+                        value={formData.equipmentCategory}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <option value="">All Categories</option>
+                        {equipmentCategories.map(category => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Equipment Item *
+                      </label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setShowEquipmentDropdown(!showEquipmentDropdown)}
+                          className={`w-full px-4 py-3 border rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors flex items-center justify-between ${
+                            errors.equipmentId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                          }`}
+                        >
+                          <span className={formData.equipmentId ? 'text-gray-900' : 'text-gray-500'}>
+                            {formData.equipmentId 
+                              ? getEquipmentList().find(eq => eq.id === formData.equipmentId)?.name
+                              : 'Select equipment'
+                            }
+                          </span>
+                          <ChevronDown className="w-5 h-5 text-gray-400" />
+                        </button>
+                        
+                        {showEquipmentDropdown && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {getEquipmentList().map(equipment => (
+                              <button
+                                key={equipment.id}
+                                type="button"
+                                onClick={() => handleEquipmentSelect(equipment)}
+                                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
+                              >
+                                <span className="text-gray-900">{equipment.name}</span>
+                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                  equipment.available 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {equipment.available ? 'Available' : 'Rented'}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {errors.equipmentId && (
+                        <p className="mt-2 text-sm text-red-600">{errors.equipmentId}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {formData.taskType === 'customerName' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Customer *
+                    </label>
+                    <div className="relative">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={formData.customerSearch}
+                          onChange={(e) => {
+                            setFormData(prev => ({ ...prev, customerSearch: e.target.value, customerId: '' }));
+                            setShowCustomerDropdown(true);
+                          }}
+                          onFocus={() => setShowCustomerDropdown(true)}
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                            errors.customerId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                          }`}
+                          placeholder="Search customers..."
+                        />
+                      </div>
+                      
+                      {showCustomerDropdown && filteredCustomers.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          {filteredCustomers.map(customer => (
+                            <button
+                              key={customer.id}
+                              type="button"
+                              onClick={() => handleCustomerSelect(customer)}
+                              className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                            >
+                              <div className="font-medium text-gray-900">{customer.name}</div>
+                              <div className="text-sm text-gray-500">{customer.email} • {customer.phone}</div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {errors.customerId && (
+                      <p className="mt-2 text-sm text-red-600">{errors.customerId}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Additional Task Information */}
+          {canShowStep3() && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">3</div>
+                <h2 className="text-lg font-semibold text-gray-900">Task Information</h2>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Description */}
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={4}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none ${
+                      errors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                    placeholder="Describe the task requirements and goals"
+                  />
+                  {errors.description && (
+                    <p className="mt-2 text-sm text-red-600">{errors.description}</p>
+                  )}
+                </div>
+
+                {/* Priority, Assigned To, Sprint Assignment */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+                      Priority
+                    </label>
+                    <select
+                      id="priority"
+                      name="priority"
+                      value={formData.priority}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm"
                     >
-                      <Upload className="w-4 h-4" />
-                      <span>Upload Files</span>
-                    </button>
-                    <span className="text-sm text-gray-500">
-                      Photos, Videos, PDFs (Max 50MB each)
-                    </span>
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Urgent">Urgent</option>
+                    </select>
+                    <div className={`mt-1 px-2 py-1 rounded-full text-xs inline-block border ${getPriorityColor(formData.priority)}`}>
+                      {formData.priority} Priority
+                    </div>
                   </div>
 
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*,video/*,.pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
+                  <div>
+                    <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700 mb-2">
+                      Assigned To *
+                    </label>
+                    <select
+                      id="assignedTo"
+                      name="assignedTo"
+                      value={formData.assignedTo}
+                      onChange={handleInputChange}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm ${
+                        errors.assignedTo ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Select member</option>
+                      {users.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.assignedTo && (
+                      <p className="mt-1 text-xs text-red-600">{errors.assignedTo}</p>
+                    )}
+                  </div>
 
-                  {formData.attachments.length > 0 && (
+                  <div>
+                    <label htmlFor="sprintId" className="block text-sm font-medium text-gray-700 mb-2">
+                      Sprint (Optional)
+                    </label>
+                    <select
+                      id="sprintId"
+                      name="sprintId"
+                      value={formData.sprintId}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm"
+                    >
+                      <option value="">No sprint</option>
+                      {sprints.map(sprint => (
+                        <option key={sprint.id} value={sprint.id}>
+                          {sprint.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Start Date, Due Date, Task List */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      id="startDate"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-2">
+                      Due Date
+                    </label>
+                    <input
+                      type="date"
+                      id="dueDate"
+                      name="dueDate"
+                      value={formData.dueDate}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="taskListId" className="block text-sm font-medium text-gray-700 mb-2">
+                      Task List *
+                    </label>
+                    <select
+                      id="taskListId"
+                      name="taskListId"
+                      value={formData.taskListId}
+                      onChange={handleInputChange}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm ${
+                        errors.taskListId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Select task list</option>
+                      {taskLists.map(list => (
+                        <option key={list.id} value={list.id}>
+                          {list.name}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.taskListId && (
+                      <p className="mt-1 text-xs text-red-600">{errors.taskListId}</p>
+                    )}
+                    
+                    {/* Show selected task list preview */}
+                    {formData.taskListId && getSelectedTaskList() && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded border">
+                        <div className={`text-xs px-2 py-1 rounded ${getSelectedTaskList().color}`}>
+                          <strong>{getSelectedTaskList().name}</strong>
+                          {getSelectedTaskList().description && (
+                            <div className="text-gray-600 mt-1">{getSelectedTaskList().description}</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: File Attachments */}
+          {projectSettings.allowFileUploads && canShowStep4 && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">4</div>
+                <h2 className="text-lg font-semibold text-gray-900">Attachments (Optional)</h2>
+              </div>
+              <p className="text-gray-600 mb-4">Add photos, videos, or PDF documents to support this task.</p>
+              
+              <div className="space-y-4">
+                {/* Upload Buttons */}
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                    }}
+                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span>Upload Files</span>
+                  </button>
+                  
+                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-lg">🖼️</span>
+                      <span>Photos</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-lg">🎥</span>
+                      <span>Videos</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-lg">📄</span>
+                      <span>PDFs</span>
+                    </div>
+                  </div>
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*,video/*,.pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                
+                <p className="text-sm text-gray-500">
+                  <strong>Supported formats:</strong> JPG, PNG, GIF, WebP, MP4, MOV, AVI, WebM, PDF<br />
+                  <strong>Maximum size:</strong> 50MB per file • <strong>Multiple files:</strong> Supported
+                </p>
+
+                {/* File List */}
+                {formData.attachments.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-gray-900">
+                      Attached Files ({formData.attachments.length})
+                    </h3>
                     <div className="space-y-2">
                       {formData.attachments.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                           <div className="flex items-center space-x-3">
-                            <div className={`w-8 h-8 rounded flex items-center justify-center text-sm ${getFileTypeColor(file)}`}>
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${getFileTypeColor(file)}`}>
                               {getFileIcon(file)}
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                              <p className="text-xs text-gray-500">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB
-                              </p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                              <div className="flex items-center space-x-3 text-xs text-gray-500">
+                                <span>{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                <span className="capitalize">
+                                  {file.type.startsWith('image/') && 'Photo'}
+                                  {file.type.startsWith('video/') && 'Video'}
+                                  {file.type === 'application/pdf' && 'PDF'}
+                                </span>
+                              </div>
                             </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => removeAttachment(index)}
-                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors rounded"
+                            title="Remove file"
                           >
                             <X className="w-4 h-4" />
                           </button>
                         </div>
                       ))}
                     </div>
-                  )}
+                    
+                    {/* Summary */}
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center space-x-2 text-sm text-blue-700">
+                        <Upload className="w-4 h-4" />
+                        <span>
+                          {formData.attachments.length} file{formData.attachments.length !== 1 ? 's' : ''} ready to upload
+                        </span>
+                      </div>
+                      <div className="text-sm text-blue-600">
+                        Total: {(formData.attachments.reduce((total, file) => total + file.size, 0) / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Drag & Drop Zone */}
+                <div 
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const files = Array.from(e.dataTransfer.files);
+                    handleFileUpload({ target: { files } });
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDragEnter={(e) => e.preventDefault()}
+                >
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Drop files here</span> or click Upload Files above
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Photos, Videos, and PDFs accepted
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Form Actions */}
-            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          {/* Form Actions */}
+          {canShowActions && (
+            <div className="flex items-center justify-end space-x-4">
               <button
                 type="button"
                 onClick={handleCancel}
@@ -572,7 +1023,10 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <span>Creating...</span>
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Creating...</span>
+                  </>
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
@@ -581,7 +1035,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
                 )}
               </button>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
