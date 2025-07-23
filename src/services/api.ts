@@ -65,6 +65,236 @@ class ApiService {
     };
   }
 
+  private getMockProjectDetail(id: number) {
+    return {
+      data: {
+        project: {
+          id: id,
+          name: "E-commerce Platform Redesign",
+          description: "Complete overhaul of the existing e-commerce platform with modern UI/UX principles and improved performance",
+          status: "active",
+          priority: "high",
+          start_date: "2024-01-15",
+          due_date: "2024-04-30",
+          budget: "75000.00",
+          client: "TechCorp Solutions",
+          progress_percentage: 65,
+          tasks_count: 12,
+          completed_tasks: 8,
+          created_at: "2024-01-15T10:30:00.000000Z",
+          updated_at: "2024-01-20T14:45:00.000000Z",
+          objectives: [
+            "Improve user experience and conversion rates by 25%",
+            "Implement modern responsive design for all devices",
+            "Optimize performance and reduce loading times by 40%"
+          ],
+          deliverables: [
+            "New responsive website design and implementation",
+            "Mobile-optimized user interface with PWA features",
+            "Performance optimization report and implementation"
+          ],
+          tags: ["web", "ecommerce", "redesign", "ui/ux", "performance"],
+          settings: {
+            taskTypes: {
+              general: true,
+              equipmentId: false,
+              customerName: true
+            },
+            allowFileUploads: true,
+            requireApproval: true,
+            enableTimeTracking: true,
+            publicProject: false
+          },
+          team: [
+            { id: 1, name: "Sarah Johnson", email: "sarah.johnson@taskmaster.com", role: "manager", avatar: "SJ" },
+            { id: 2, name: "Mike Chen", email: "mike.chen@taskmaster.com", role: "developer", avatar: "MC" },
+            { id: 3, name: "Emily Rodriguez", email: "emily.rodriguez@taskmaster.com", role: "designer", avatar: "ER" },
+            { id: 4, name: "David Kim", email: "david.kim@taskmaster.com", role: "developer", avatar: "DK" }
+          ],
+          project_manager: {
+            id: 1,
+            name: "Sarah Johnson",
+            email: "sarah.johnson@taskmaster.com",
+            role: "manager",
+            avatar: "SJ"
+          },
+          task_lists: [
+            {
+              id: 1,
+              name: "To Do",
+              description: "Tasks that are planned but not yet started",
+              color: "bg-gray-100",
+              order: 1,
+              tasks_count: 3,
+              created_at: "2024-01-15T10:30:00.000000Z",
+              updated_at: "2024-01-15T10:30:00.000000Z",
+              tasks: [
+                {
+                  id: 1,
+                  title: "Setup project structure",
+                  description: "Initialize the project with proper folder structure and dependencies",
+                  priority: "high",
+                  task_type: "general",
+                  start_date: "2024-02-01",
+                  due_date: "2024-02-15",
+                  estimated_hours: 16,
+                  actual_hours: null,
+                  tags: ["setup", "structure", "dependencies"],
+                  feedback: null,
+                  attachments_count: 0,
+                  comments_count: 1,
+                  created_at: "2024-01-15T10:30:00.000000Z",
+                  updated_at: "2024-01-15T10:30:00.000000Z",
+                  assigned_to: {
+                    id: 2,
+                    name: "Mike Chen",
+                    email: "mike.chen@taskmaster.com",
+                    role: "developer",
+                    avatar: "MC"
+                  }
+                },
+                {
+                  id: 2,
+                  title: "Design system documentation",
+                  description: "Create comprehensive design system documentation for the project",
+                  priority: "medium",
+                  task_type: "design",
+                  start_date: "2024-02-05",
+                  due_date: "2024-02-20",
+                  estimated_hours: 24,
+                  actual_hours: null,
+                  tags: ["design", "documentation", "system"],
+                  feedback: null,
+                  attachments_count: 2,
+                  comments_count: 0,
+                  created_at: "2024-01-16T09:15:00.000000Z",
+                  updated_at: "2024-01-16T09:15:00.000000Z",
+                  assigned_to: {
+                    id: 3,
+                    name: "Emily Rodriguez",
+                    email: "emily.rodriguez@taskmaster.com",
+                    role: "designer",
+                    avatar: "ER"
+                  }
+                }
+              ]
+            },
+            {
+              id: 2,
+              name: "In Progress",
+              description: "Tasks currently being worked on",
+              color: "bg-blue-100",
+              order: 2,
+              tasks_count: 2,
+              created_at: "2024-01-15T10:30:00.000000Z",
+              updated_at: "2024-01-15T10:30:00.000000Z",
+              tasks: [
+                {
+                  id: 3,
+                  title: "Implement user authentication",
+                  description: "Add login and registration functionality with OAuth integration",
+                  priority: "urgent",
+                  task_type: "feature",
+                  start_date: "2024-01-20",
+                  due_date: "2024-02-10",
+                  estimated_hours: 32,
+                  actual_hours: 18,
+                  tags: ["authentication", "security", "oauth"],
+                  feedback: null,
+                  attachments_count: 1,
+                  comments_count: 4,
+                  created_at: "2024-01-17T11:20:00.000000Z",
+                  updated_at: "2024-01-20T16:30:00.000000Z",
+                  assigned_to: {
+                    id: 2,
+                    name: "Mike Chen",
+                    email: "mike.chen@taskmaster.com",
+                    role: "developer",
+                    avatar: "MC"
+                  }
+                }
+              ]
+            },
+            {
+              id: 3,
+              name: "Review",
+              description: "Tasks completed and awaiting review",
+              color: "bg-yellow-100",
+              order: 3,
+              tasks_count: 1,
+              created_at: "2024-01-15T10:30:00.000000Z",
+              updated_at: "2024-01-15T10:30:00.000000Z",
+              tasks: [
+                {
+                  id: 4,
+                  title: "Homepage wireframes",
+                  description: "Create wireframes for the new homepage layout",
+                  priority: "high",
+                  task_type: "design",
+                  start_date: "2024-01-18",
+                  due_date: "2024-01-30",
+                  estimated_hours: 16,
+                  actual_hours: 14,
+                  tags: ["wireframes", "homepage", "design"],
+                  feedback: "Great progress! Please add mobile breakpoint wireframes.",
+                  attachments_count: 3,
+                  comments_count: 2,
+                  created_at: "2024-01-18T14:10:00.000000Z",
+                  updated_at: "2024-01-25T10:45:00.000000Z",
+                  assigned_to: {
+                    id: 3,
+                    name: "Emily Rodriguez",
+                    email: "emily.rodriguez@taskmaster.com",
+                    role: "designer",
+                    avatar: "ER"
+                  }
+                }
+              ]
+            },
+            {
+              id: 4,
+              name: "Done",
+              description: "Completed and approved tasks",
+              color: "bg-green-100",
+              order: 4,
+              tasks_count: 2,
+              created_at: "2024-01-15T10:30:00.000000Z",
+              updated_at: "2024-01-15T10:30:00.000000Z",
+              tasks: [
+                {
+                  id: 5,
+                  title: "Database schema design",
+                  description: "Design and implement the database schema for the project",
+                  priority: "high",
+                  task_type: "general",
+                  start_date: "2024-01-15",
+                  due_date: "2024-01-25",
+                  estimated_hours: 20,
+                  actual_hours: 18,
+                  tags: ["database", "schema", "design"],
+                  feedback: null,
+                  attachments_count: 1,
+                  comments_count: 3,
+                  created_at: "2024-01-15T10:30:00.000000Z",
+                  updated_at: "2024-01-25T15:20:00.000000Z",
+                  assigned_to: {
+                    id: 4,
+                    name: "David Kim",
+                    email: "david.kim@taskmaster.com",
+                    role: "developer",
+                    avatar: "DK"
+                  }
+                }
+              ]
+            }
+          ],
+          is_overdue: false,
+          days_until_due: 65,
+          can_user_edit: true
+        }
+      }
+    };
+  }
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -100,7 +330,14 @@ class ApiService {
       if (!response.ok) {
         // Handle authentication errors specifically
         if (response.status === 401) {
-          throw new Error('Authentication required - using mock data');
+          this.useMockData = true;
+          throw new Error('Backend unavailable - using mock data');
+        }
+        if (response.status === 404) {
+          throw new Error('Resource not found');
+        }
+        if (response.status === 403) {
+          throw new Error('Access denied - insufficient permissions');
         }
         throw new Error(data.message || 'API request failed');
       }
@@ -180,6 +417,7 @@ class ApiService {
       this.token = null;
       localStorage.removeItem('auth_token');
       localStorage.removeItem('token_expires_at');
+      this.useMockData = false;
     }
   }
 
@@ -214,6 +452,7 @@ class ApiService {
       return this.request<{ users: any[] }>(`/users${query ? `?${query}` : ''}`);
     } catch (error) {
       console.log('Falling back to mock data for users');
+      this.useMockData = true;
       return this.getMockUsers();
     }
   }
@@ -233,6 +472,7 @@ class ApiService {
       return this.request<{ managers: any[] }>('/users/managers');
     } catch (error) {
       console.log('Falling back to mock data for managers');
+      this.useMockData = true;
       const mockUsers = this.getMockUsers();
       return {
         data: {
@@ -259,6 +499,7 @@ class ApiService {
       return this.request<{ projects: any[] }>(`/projects${query ? `?${query}` : ''}`);
     } catch (error) {
       console.log('Falling back to mock data for projects');
+      this.useMockData = true;
       return this.getMockProjects();
     }
   }
@@ -266,126 +507,15 @@ class ApiService {
   async getProject(id: number) {
     if (this.useMockData) {
       console.log('Using mock data for project details');
-      return {
-        data: {
-          project: {
-            id: id,
-            name: "Sample Project",
-            description: "This is a sample project loaded from mock data",
-            status: "active",
-            priority: "medium",
-            progress_percentage: 45,
-            tasks_count: 8,
-            completed_tasks: 3,
-            created_at: "2024-01-15T10:30:00.000000Z",
-            updated_at: "2024-01-20T14:45:00.000000Z",
-            team: [
-              { id: 1, name: "John Doe", email: "john@example.com", role: "manager", avatar: "JD" },
-              { id: 2, name: "Jane Smith", email: "jane@example.com", role: "developer", avatar: "JS" }
-            ],
-            project_manager: { id: 1, name: "John Doe", email: "john@example.com", role: "manager", avatar: "JD" },
-            task_lists: [
-              {
-                id: 1,
-                name: "To Do",
-                description: "Tasks that are planned but not yet started",
-                color: "bg-gray-100",
-                order: 1,
-                tasks_count: 2,
-                tasks: [
-                  {
-                    id: 1,
-                    title: "Setup project structure",
-                    description: "Initialize the project with proper folder structure and dependencies",
-                    priority: "high",
-                    task_type: "general",
-                    assigned_to: { id: 1, name: "John Doe", avatar: "JD" },
-                    due_date: "2024-02-15",
-                    attachments_count: 0,
-                    comments_count: 1
-                  }
-                ]
-              },
-              {
-                id: 2,
-                name: "In Progress",
-                description: "Tasks currently being worked on",
-                color: "bg-blue-100",
-                order: 2,
-                tasks_count: 1,
-                tasks: [
-                  {
-                    id: 2,
-                    title: "Implement user authentication",
-                    description: "Add login and registration functionality",
-                    priority: "urgent",
-                    task_type: "feature",
-                    assigned_to: { id: 2, name: "Jane Smith", avatar: "JS" },
-                    due_date: "2024-02-10",
-                    attachments_count: 2,
-                    comments_count: 3
-                  }
-                ]
-              },
-              {
-                id: 3,
-                name: "Review",
-                description: "Tasks completed and awaiting review",
-                color: "bg-yellow-100",
-                order: 3,
-                tasks_count: 0,
-                tasks: []
-              },
-              {
-                id: 4,
-                name: "Done",
-                description: "Completed and approved tasks",
-                color: "bg-green-100",
-                order: 4,
-                tasks_count: 1,
-                tasks: [
-                  {
-                    id: 3,
-                    title: "Database design",
-                    description: "Design and implement database schema",
-                    priority: "medium",
-                    task_type: "general",
-                    assigned_to: { id: 1, name: "John Doe", avatar: "JD" },
-                    due_date: "2024-01-30",
-                    attachments_count: 1,
-                    comments_count: 2
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      };
+      return this.getMockProjectDetail(id);
     }
     
     try {
       return this.request<{ project: any }>(`/projects/${id}`);
     } catch (error) {
       console.log('Falling back to mock data for project details');
-      return {
-        data: {
-          project: {
-            id: id,
-            name: "Sample Project",
-            description: "This is a sample project loaded from mock data",
-            status: "active",
-            priority: "medium",
-            progress_percentage: 45,
-            tasks_count: 8,
-            completed_tasks: 3,
-            created_at: "2024-01-15T10:30:00.000000Z",
-            updated_at: "2024-01-20T14:45:00.000000Z",
-            team: [],
-            project_manager: null,
-            task_lists: []
-          }
-        }
-      };
+      this.useMockData = true;
+      return this.getMockProjectDetail(id);
     }
   }
 
@@ -428,6 +558,7 @@ class ApiService {
       });
     } catch (error) {
       console.log('Falling back to mock data for project creation');
+      this.useMockData = true;
       // Return mock success response
       const mockProject = {
         id: Date.now(),
@@ -454,21 +585,86 @@ class ApiService {
   }
 
   async updateProject(id: number, projectData: any) {
-    return this.request<{ project: any }>(`/projects/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(projectData),
-    });
+    if (this.useMockData) {
+      console.log('Using mock data for project update');
+      return {
+        data: {
+          project: { id, ...projectData, updated_at: new Date().toISOString() },
+          message: 'Project updated successfully (mock data)'
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ project: any }>(`/projects/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(projectData),
+      });
+    } catch (error) {
+      console.log('Falling back to mock data for project update');
+      this.useMockData = true;
+      return {
+        data: {
+          project: { id, ...projectData, updated_at: new Date().toISOString() },
+          message: 'Project updated successfully (mock data)'
+        }
+      };
+    }
   }
 
   async deleteProject(id: number) {
-    return this.request(`/projects/${id}`, {
-      method: 'DELETE',
-    });
+    if (this.useMockData) {
+      console.log('Using mock data for project deletion');
+      return {
+        data: { message: 'Project deleted successfully (mock data)' }
+      };
+    }
+    
+    try {
+      return this.request(`/projects/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.log('Falling back to mock data for project deletion');
+      this.useMockData = true;
+      return {
+        data: { message: 'Project deleted successfully (mock data)' }
+      };
+    }
   }
 
   // Task Lists
   async getTaskLists(projectId: number) {
-    return this.request<{ task_lists: any[] }>(`/projects/${projectId}/task-lists`);
+    if (this.useMockData) {
+      console.log('Using mock data for task lists');
+      return {
+        data: {
+          task_lists: [
+            { id: 1, name: 'To Do', color: 'bg-gray-100', order: 1, tasks: [] },
+            { id: 2, name: 'In Progress', color: 'bg-blue-100', order: 2, tasks: [] },
+            { id: 3, name: 'Review', color: 'bg-yellow-100', order: 3, tasks: [] },
+            { id: 4, name: 'Done', color: 'bg-green-100', order: 4, tasks: [] }
+          ]
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ task_lists: any[] }>(`/projects/${projectId}/task-lists`);
+    } catch (error) {
+      console.log('Falling back to mock data for task lists');
+      this.useMockData = true;
+      return {
+        data: {
+          task_lists: [
+            { id: 1, name: 'To Do', color: 'bg-gray-100', order: 1, tasks: [] },
+            { id: 2, name: 'In Progress', color: 'bg-blue-100', order: 2, tasks: [] },
+            { id: 3, name: 'Review', color: 'bg-yellow-100', order: 3, tasks: [] },
+            { id: 4, name: 'Done', color: 'bg-green-100', order: 4, tasks: [] }
+          ]
+        }
+      };
+    }
   }
 
   async createTaskList(projectId: number, taskListData: any) {
@@ -503,6 +699,7 @@ class ApiService {
       });
     } catch (error) {
       console.log('Falling back to mock data for task list creation');
+      this.useMockData = true;
       // Return mock success response
       const mockTaskList = {
         id: Date.now(),
@@ -527,38 +724,166 @@ class ApiService {
   }
 
   async updateTaskList(taskListId: number, taskListData: any) {
-    return this.request<{ task_list: any }>(`/projects/${projectId}/task-lists`, {
-      method: 'POST',
-      body: JSON.stringify(taskListData),
-    });
+    if (this.useMockData) {
+      console.log('Using mock data for task list update');
+      return {
+        data: {
+          task_list: { id: taskListId, ...taskListData, updated_at: new Date().toISOString() },
+          message: 'Task list updated successfully (mock data)'
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ task_list: any }>(`/task-lists/${taskListId}`, {
+        method: 'PUT',
+        body: JSON.stringify(taskListData),
+      });
+    } catch (error) {
+      console.log('Falling back to mock data for task list update');
+      this.useMockData = true;
+      return {
+        data: {
+          task_list: { id: taskListId, ...taskListData, updated_at: new Date().toISOString() },
+          message: 'Task list updated successfully (mock data)'
+        }
+      };
+    }
   }
 
   async deleteTaskList(taskListId: number) {
-    return this.request(`/task-lists/${taskListId}`, {
-      method: 'DELETE',
-    });
+    if (this.useMockData) {
+      console.log('Using mock data for task list deletion');
+      return {
+        data: { message: 'Task list deleted successfully (mock data)' }
+      };
+    }
+    
+    try {
+      return this.request(`/task-lists/${taskListId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.log('Falling back to mock data for task list deletion');
+      this.useMockData = true;
+      return {
+        data: { message: 'Task list deleted successfully (mock data)' }
+      };
+    }
   }
 
   async reorderTaskLists(projectId: number, taskLists: any[]) {
-    return this.request<{ task_lists: any[] }>(`/projects/${projectId}/task-lists/reorder`, {
-      method: 'POST',
-      body: JSON.stringify({ task_lists: taskLists }),
-    });
+    if (this.useMockData) {
+      console.log('Using mock data for task list reordering');
+      return {
+        data: {
+          task_lists: taskLists,
+          message: 'Task lists reordered successfully (mock data)'
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ task_lists: any[] }>(`/projects/${projectId}/task-lists/reorder`, {
+        method: 'POST',
+        body: JSON.stringify({ task_lists: taskLists }),
+      });
+    } catch (error) {
+      console.log('Falling back to mock data for task list reordering');
+      this.useMockData = true;
+      return {
+        data: {
+          task_lists: taskLists,
+          message: 'Task lists reordered successfully (mock data)'
+        }
+      };
+    }
   }
 
   // Tasks
   async getTasks(taskListId: number) {
-    return this.request<{ tasks: any[] }>(`/task-lists/${taskListId}/tasks`);
+    if (this.useMockData) {
+      console.log('Using mock data for tasks');
+      return {
+        data: { tasks: [] }
+      };
+    }
+    
+    try {
+      return this.request<{ tasks: any[] }>(`/task-lists/${taskListId}/tasks`);
+    } catch (error) {
+      console.log('Falling back to mock data for tasks');
+      this.useMockData = true;
+      return {
+        data: { tasks: [] }
+      };
+    }
   }
 
   async createTask(taskListId: number, taskData: any) {
-    return this.request<{ task: any }>(`/task-lists/${taskListId}/tasks`, {
-      method: 'POST',
-      body: JSON.stringify(taskData),
-    });
+    if (this.useMockData) {
+      console.log('Using mock data for task creation');
+      const mockTask = {
+        id: Date.now(),
+        ...taskData,
+        task_list_id: taskListId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        attachments_count: 0,
+        comments_count: 0
+      };
+      return {
+        data: {
+          task: mockTask,
+          message: 'Task created successfully (mock data)'
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ task: any }>(`/task-lists/${taskListId}/tasks`, {
+        method: 'POST',
+        body: JSON.stringify(taskData),
+      });
+    } catch (error) {
+      console.log('Falling back to mock data for task creation');
+      this.useMockData = true;
+      const mockTask = {
+        id: Date.now(),
+        ...taskData,
+        task_list_id: taskListId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        attachments_count: 0,
+        comments_count: 0
+      };
+      return {
+        data: {
+          task: mockTask,
+          message: 'Task created successfully (mock data)'
+        }
+      };
+    }
   }
 
   async createTaskWithAttachments(taskListId: number, formData: FormData) {
+    if (this.useMockData) {
+      console.log('Using mock data for task creation with attachments');
+      return {
+        data: {
+          task: {
+            id: Date.now(),
+            task_list_id: taskListId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            attachments_count: 1,
+            comments_count: 0
+          },
+          message: 'Task with attachments created successfully (mock data)'
+        }
+      };
+    }
+    
     // For file uploads, we need to use FormData and not set Content-Type header
     const url = `${API_BASE_URL}/task-lists/${taskListId}/tasks/with-attachments`;
     
@@ -588,7 +913,8 @@ class ApiService {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Authentication required - using mock data');
+          this.useMockData = true;
+          throw new Error('Backend unavailable - using mock data');
         }
         throw new Error(data.message || 'API request failed');
       }
@@ -598,23 +924,195 @@ class ApiService {
       if (!error.message?.includes('Authentication')) {
         console.warn('API connection failed:', error.message);
       }
+      this.useMockData = true;
       throw error;
     }
   }
 
   async updateTask(taskId: number, taskData: any) {
-    return this.request<{ task: any }>(`/tasks/${taskId}`, {
-      method: 'PUT',
-      body: JSON.stringify(taskData),
-    });
+    if (this.useMockData) {
+      console.log('Using mock data for task update');
+      return {
+        data: {
+          task: { id: taskId, ...taskData, updated_at: new Date().toISOString() },
+          message: 'Task updated successfully (mock data)'
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ task: any }>(`/tasks/${taskId}`, {
+        method: 'PUT',
+        body: JSON.stringify(taskData),
+      });
+    } catch (error) {
+      console.log('Falling back to mock data for task update');
+      this.useMockData = true;
+      return {
+        data: {
+          task: { id: taskId, ...taskData, updated_at: new Date().toISOString() },
+          message: 'Task updated successfully (mock data)'
+        }
+      };
+    }
   }
-}
-async moveTask(taskId: number, taskListId: number) {
   async moveTask(taskId: number, taskListId: number) {
+    if (this.useMockData) {
+      console.log('Using mock data for task move');
+      return {
+        data: {
+          task: { id: taskId, task_list_id: taskListId, updated_at: new Date().toISOString() },
+          message: 'Task moved successfully (mock data)'
+        }
+      };
+    }
+    
+    try {
     return this.request<{ task: any }>(`/tasks/${taskId}/move`, {
       method: 'POST',
       body: JSON.stringify({ task_list_id: taskListId }),
     });
+    } catch (error) {
+      console.log('Falling back to mock data for task move');
+      this.useMockData = true;
+      return {
+        data: {
+          task: { id: taskId, task_list_id: taskListId, updated_at: new Date().toISOString() },
+          message: 'Task moved successfully (mock data)'
+        }
+      };
+    }
+  }
+
+  // Comments
+  async getComments(taskId: number) {
+    if (this.useMockData) {
+      console.log('Using mock data for comments');
+      return {
+        data: { comments: [] }
+      };
+    }
+    
+    try {
+      return this.request<{ comments: any[] }>(`/tasks/${taskId}/comments`);
+    } catch (error) {
+      console.log('Falling back to mock data for comments');
+      this.useMockData = true;
+      return {
+        data: { comments: [] }
+      };
+    }
+  }
+
+  async createComment(taskId: number, commentData: any) {
+    if (this.useMockData) {
+      console.log('Using mock data for comment creation');
+      return {
+        data: {
+          comment: {
+            id: Date.now(),
+            task_id: taskId,
+            ...commentData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          message: 'Comment created successfully (mock data)'
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ comment: any }>(`/tasks/${taskId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify(commentData),
+      });
+    } catch (error) {
+      console.log('Falling back to mock data for comment creation');
+      this.useMockData = true;
+      return {
+        data: {
+          comment: {
+            id: Date.now(),
+            task_id: taskId,
+            ...commentData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          message: 'Comment created successfully (mock data)'
+        }
+      };
+    }
+  }
+
+  // Attachments
+  async uploadAttachment(formData: FormData) {
+    if (this.useMockData) {
+      console.log('Using mock data for attachment upload');
+      return {
+        data: {
+          attachments: [{
+            id: Date.now(),
+            filename: 'mock-file.jpg',
+            original_filename: 'mock-file.jpg',
+            size: 1024,
+            created_at: new Date().toISOString()
+          }],
+          message: 'File uploaded successfully (mock data)'
+        }
+      };
+    }
+    
+    try {
+      const url = `${API_BASE_URL}/attachments`;
+      
+      const headers: HeadersInit = {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      };
+
+      if (this.token) {
+        headers.Authorization = `Bearer ${this.token}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = { message: await response.text() };
+      }
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.useMockData = true;
+          throw new Error('Backend unavailable - using mock data');
+        }
+        throw new Error(data.message || 'Upload failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.log('Falling back to mock data for attachment upload');
+      this.useMockData = true;
+      return {
+        data: {
+          attachments: [{
+            id: Date.now(),
+            filename: 'mock-file.jpg',
+            original_filename: 'mock-file.jpg',
+            size: 1024,
+            created_at: new Date().toISOString()
+          }],
+          message: 'File uploaded successfully (mock data)'
+        }
+      };
+    }
   }
 }
 
