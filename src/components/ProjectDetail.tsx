@@ -40,8 +40,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
       
       try {
         const response = await apiService.getProject(project.id);
-        
+        alert(response.data?.project);
         if (response.data?.project) {
+          alert(response.data.project);
           const backendProject = response.data.project;
           
           // Transform backend data to frontend format
@@ -876,6 +877,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+        
         {taskLists.length > 0 ? (
           /* Task Lists with Tasks */
           <div className="space-y-8">
@@ -908,6 +910,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
 
                 {/* Tasks */}
                 <div className="divide-y divide-gray-100">
+                  {taskLists.length}
                   {sortTasks(taskList.tasks).length > 0 ? (
                     sortTasks(taskList.tasks).map((task) => {
                       const lastComment = getLastComment(task.id);
@@ -1075,6 +1078,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
               onClick={handleAddTaskList}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
+              {}
               Create Your First Task List
             </button>
           </div>
