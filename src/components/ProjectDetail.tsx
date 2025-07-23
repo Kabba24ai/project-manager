@@ -40,10 +40,13 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
       
       try {
         const response = await apiService.getProject(project.id);
-        alert(response.data?.project);
+        console.log('API Response:', response);
+        console.log('Project Data:', response.data?.project);
+        
         if (response.data?.project) {
-          alert(response.data.project);
           const backendProject = response.data.project;
+          console.log('Backend Project:', backendProject);
+          console.log('Task Lists:', backendProject.task_lists);
           
           // Transform backend data to frontend format
           const transformedProject: Project = {
