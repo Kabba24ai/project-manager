@@ -8,7 +8,6 @@ interface ProjectDetailProps {
   project: Project;
   onViewChange: (view: ViewType, data?: any) => void;
   onTaskListUpdate?: (taskLists: TaskList[]) => void;
-  selectedTaskListId?: number;
 }
 
 interface Comment {
@@ -26,7 +25,7 @@ interface Comment {
   }>;
 }
 
-const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, onTaskListUpdate, selectedTaskListId }) => {
+const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, onTaskListUpdate }) => {
   // State management
   const [projectData, setProjectData] = useState<Project>(project);
   const [taskLists, setTaskLists] = useState<TaskList[]>([]);
@@ -347,38 +346,12 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
   };
 
   // NEW: Handle adding task to specific task list
-  const handleAddTaskToList = (taskListId?: number) => {
-    console.log('🚀 handleAddTaskToList called with taskListId:', taskListId);
-    console.log('📋 Current taskLists state:', taskLists);
-    console.log('🏗️ Current projectData:', projectData);
-    
-    console.log('handleAddTaskToList called with:', taskListId);
-    console.log('Current project data:', projectData);
-    console.log('Available task lists:', taskLists);
-    
-    // Ensure we have the required data before navigating
-    if (!projectData) {
-      console.error('No project data available');
-      alert('Project data not loaded. Please refresh the page.');
-      return;
-    }
-    
-    if (!taskLists || taskLists.length === 0) {
-      console.error('No task lists available');
-      alert('No task lists available. Please create a task list first.');
-      return;
-    }
-    
-    console.log('Navigating to add-task with data:', {
+  const handleAddTaskToList = (taskListId: number): void => {
+    onViewChange('add-task', { 
+      projectId: projectData.id, 
+      taskLists: taskLists,
       project: projectData,
-      taskListId: taskListId,
-      taskLists: taskLists
-    });
-    
-    onViewChange('add-task', {
-      project: projectData,
-      taskListId: taskListId,
-      taskLists: taskLists // This should contain the Laravel backend data
+      preSelectedTaskListId: taskListId // Pass the pre-selected task list ID
     });
   };
 
@@ -443,7 +416,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
     }, 500);
   };
 
-  const handleAddComment = async (): Promise<void> => {
+  const handleAddComment = async (): void => {
     if (!newComment.trim() && commentAttachments.length === 0) return;
 
     // Simulate file uploads
@@ -934,8 +907,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
                         className="flex items-center space-x-1 px-3 py-1 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200 text-sm font-medium"
                         title={`Add task to ${taskList.name}`}
                       >
-                        <Plus className="w-4 h-4" />
-                        <span>Add Task</span>
+                        <Plus className="w-4 h-4" />Add Task
                       </button>
                     </div>
                   </div>
@@ -946,7 +918,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
                   {sortTasks(taskList.tasks).length > 0 ? (
                     sortTasks(taskList.tasks).map((task) => {
                       const lastComment = getLastComment(task.id);
-                      
                       return (
                         <div
                           key={task.id}
@@ -1110,6 +1081,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
               onClick={handleAddTaskList}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
+              {}
               Create Your First Task List
             </button>
           </div>
