@@ -19,12 +19,14 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [navigationData, setNavigationData] = useState<any>(null);
   
   // Global state for task lists - this would normally be in a state management system
   const [globalTaskLists, setGlobalTaskLists] = useState<TaskList[]>([]);
 
   const handleViewChange = (view: ViewType, data?: any) => {
     setCurrentView(view);
+    setNavigationData(data);
     
     if (view === 'project-detail' && data) {
       // Update the project with current task lists
@@ -79,10 +81,10 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
         return (
           <AddTaskForm 
             onViewChange={handleViewChange} 
-            selectedProject={data?.project || selectedProject}
-            selectedTaskListId={data?.taskListId}
-            taskLists={data?.taskLists || globalTaskLists.filter(list => list.projectId === (data?.project?.id || selectedProject?.id))}
+            selectedProject={navigationData?.project || selectedProject}
+            taskLists={navigationData?.taskLists || globalTaskLists.filter(list => list.projectId === (navigationData?.project?.id || selectedProject?.id))}
             onTaskCreated={handleTaskCreated}
+            preSelectedTaskListId={navigationData?.taskListId}
           />
         );
       
