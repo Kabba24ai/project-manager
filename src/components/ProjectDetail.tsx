@@ -348,6 +348,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
 
   // NEW: Handle adding task to specific task list
   const handleAddTaskToList = (taskListId?: number) => {
+    console.log('🚀 handleAddTaskToList called with taskListId:', taskListId);
+    console.log('📋 Current taskLists state:', taskLists);
+    console.log('🏗️ Current projectData:', projectData);
+    
     console.log('handleAddTaskToList called with:', taskListId);
     console.log('Current project data:', projectData);
     console.log('Available task lists:', taskLists);
@@ -374,7 +378,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
     onViewChange('add-task', {
       project: projectData,
       taskListId: taskListId,
-      taskLists: taskLists
+      taskLists: taskLists // This should contain the Laravel backend data
     });
   };
 

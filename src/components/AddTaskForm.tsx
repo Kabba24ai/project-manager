@@ -17,11 +17,12 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   taskLists = [],
   onTaskCreated 
 }) => {
-  console.log('AddTaskForm rendered with:');
-  console.log('- selectedProject:', selectedProject);
-  console.log('- preSelectedTaskListId:', preSelectedTaskListId);
-  console.log('- taskLists:', taskLists);
-  console.log('- taskLists length:', taskLists?.length);
+  console.log('🎨 AddTaskForm rendered with:');
+  console.log('🏗️ - selectedProject:', selectedProject);
+  console.log('🎯 - preSelectedTaskListId:', preSelectedTaskListId);
+  console.log('📋 - taskLists:', taskLists);
+  console.log('📊 - taskLists length:', taskLists?.length);
+  console.log('📝 - taskLists structure:', taskLists?.map(list => ({ id: list.id, name: list.name, projectId: list.projectId })));
 
   // Mock project settings - this would come from the selected project
   const [projectSettings] = useState({
@@ -453,7 +454,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
               <label htmlFor="taskListId" className="block text-sm font-medium text-gray-700 mb-2">
                 Task List *
               </label>
-              {(taskLists || []).length > 0 ? (
+              {taskLists && taskLists.length > 0 ? (
                 <select
                   id="taskListId"
                   name="taskListId"
@@ -473,11 +474,14 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
               ) : (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-red-700 text-sm font-medium">No Task Lists Available</p>
-                  <p className="text-red-600 text-xs mt-1">
-                    Project: {selectedProject?.name || 'Unknown'} | 
-                    TaskLists received: {taskLists?.length || 0} | 
-                    TaskLists type: {typeof taskLists}
-                  </p>
+                  <div className="text-red-600 text-xs mt-2 space-y-1">
+                    <p><strong>Debug Info:</strong></p>
+                    <p>• Project: {selectedProject?.name || 'Unknown'}</p>
+                    <p>• Project ID: {selectedProject?.id || 'Unknown'}</p>
+                    <p>• TaskLists received: {taskLists?.length || 0}</p>
+                    <p>• TaskLists type: {typeof taskLists}</p>
+                    <p>• TaskLists array: {JSON.stringify(taskLists)}</p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => onViewChange('add-task-list')}

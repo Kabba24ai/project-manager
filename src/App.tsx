@@ -78,14 +78,17 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
         return <AddProjectForm onViewChange={handleViewChange} />;
       
       case 'add-task':
+        console.log('🎯 App: Rendering add-task view');
+        console.log('📦 Navigation data received:', navigationData);
+        console.log('📋 Task lists from navigation:', navigationData?.taskLists);
+        console.log('🏗️ Selected project:', navigationData?.project || selectedProject);
+        
         return (
           <AddTaskForm 
             onViewChange={handleViewChange} 
             selectedProject={navigationData?.project || selectedProject}
             preSelectedTaskListId={navigationData?.taskListId}
-            taskLists={navigationData?.taskLists || globalTaskLists.filter(list => 
-              list.projectId === (navigationData?.project?.id || selectedProject?.id)
-            )}
+            taskLists={navigationData?.taskLists || []}
             onTaskCreated={handleTaskCreated}
           />
         );
