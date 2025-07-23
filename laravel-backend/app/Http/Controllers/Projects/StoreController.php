@@ -48,7 +48,14 @@ class StoreController extends Controller
             $this->createDefaultTaskLists($project);
 
             // Load relationships for response
-            $project->load(['team', 'projectManager', 'taskLists', 'creator']);
+            $project->load([
+                'team', 
+                'projectManager', 
+                'taskLists' => function ($query) {
+                    $query->orderBy('order');
+                }, 
+                'creator'
+            ]);
 
             DB::commit();
 

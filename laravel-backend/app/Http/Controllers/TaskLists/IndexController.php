@@ -22,7 +22,7 @@ class IndexController extends BaseController
             ->get();
 
         return response()->json([
-            'task_lists' => TaskListResource::collection($taskLists),
+            'task_lists' => TaskListResource::collection($taskLists)->values(),
         ]);
     }
 }

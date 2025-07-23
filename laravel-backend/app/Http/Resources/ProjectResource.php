@@ -48,7 +48,9 @@ class ProjectResource extends JsonResource
             'team' => UserResource::collection($this->whenLoaded('team')),
             'project_manager' => new UserResource($this->whenLoaded('projectManager')),
             'creator' => new UserResource($this->whenLoaded('creator')),
-            'task_lists' => TaskListResource::collection($this->whenLoaded('taskLists')),
+            'task_lists' => $this->whenLoaded('taskLists', function() {
+                return TaskListResource::collection($this->taskLists)->values();
+            }, []),
             
             // Computed fields (Laravel 12 features)
             'is_overdue' => $this->due_date && $this->due_date->isPast() && $this->status !== 'completed',
