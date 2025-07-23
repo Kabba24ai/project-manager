@@ -608,6 +608,7 @@ class ApiService {
       body: JSON.stringify(taskData),
     });
   }
+}
 async moveTask(taskId: number, taskListId: number) {
   async moveTask(taskId: number, taskListId: number) {
     return this.request<{ task: any }>(`/tasks/${taskId}/move`, {
