@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Plus, Users, Settings, Calendar, X, MoreVertical, Edit, Trash2, Paperclip, MessageSquare, Clock, Upload, Send, Eye, ChevronDown, List, Image, Video, FileText } from 'lucide-react';
 import { Project, Task, TaskList, ViewType } from '../types';
 import { formatDate, calculateProgress } from '../utils/helpers';
+import apiService from '../services/api';
 
 interface ProjectDetailProps {
   project: Project;
@@ -27,12 +28,91 @@ interface Comment {
 const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, onTaskListUpdate }) => {
   // Use project's task lists directly from props
   const [taskLists, setTaskLists] = useState<TaskList[]>(project.taskLists || []);
+  const [projectData, setProjectData] = useState<Project>(project);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Update local state when project changes
   useEffect(() => {
     setTaskLists(project.taskLists || []);
+    setProjectData(project);
   }, [project.taskLists]);
 
+  // Load project details from backend
+  useEffect(() => {
+    const loadProjectDetails = async () => {
+      if (!project.id) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const response = await apiService.getProject(project.id);
+        
+        if (response.data?.project) {
+          const backendProject = response.data.project;
+          
+          // Transform backend data to frontend format
+          const transformedProject: Project = {
+            id: backendProject.id,
+            name: backendProject.name,
+            description: backendProject.description,
+            status: backendProject.status as 'active' | 'completed' | 'on-hold' | 'cancelled',
+            createdAt: backendProject.created_at,
+            dueDate: backendProject.due_date || '',
+            tasksCount: backendProject.tasks_count || 0,
+            completedTasks: backendProject.completed_tasks || 0,
+            progressPercentage: backendProject.progress_percentage || 0,
+            team: backendProject.team || [],
+            priority: backendProject.priority as 'low' | 'medium' | 'high' | 'urgent',
+            taskLists: (backendProject.task_lists || []).map((list: any) => ({
+              id: list.id,
+              name: list.name,
+              description: list.description || '',
+              color: list.color,
+              order: list.order,
+              projectId: backendProject.id,
+              tasks: (list.tasks || []).map((task: any) => ({
+                id: task.id,
+                title: task.title,
+                description: task.description,
+                priority: task.priority as 'low' | 'medium' | 'high' | 'urgent',
+                status: task.status || list.name,
+                assignedTo: task.assigned_to || { id: 0, name: 'Unassigned', email: '', avatar: 'U', role: 'developer' as const },
+                projectId: backendProject.id,
+                taskListId: list.id,
+                dueDate: task.due_date || '',
+                startDate: task.start_date || '',
+                createdAt: task.created_at || '',
+                updatedAt: task.updated_at || '',
+                attachments: task.attachments_count || 0,
+                comments: task.comments_count || 0,
+                taskType: task.task_type as 'general' | 'bug' | 'feature' | 'design' | 'equipmentId' | 'customerName',
+                tags: task.tags || [],
+                estimatedHours: task.estimated_hours,
+                actualHours: task.actual_hours,
+                feedback: task.feedback
+              })),
+              createdAt: list.created_at || '',
+              updatedAt: list.updated_at || ''
+            }))
+          };
+          
+          setProjectData(transformedProject);
+          setTaskLists(transformedProject.taskLists);
+          onTaskListUpdate?.(transformedProject.taskLists);
+        }
+      } catch (error) {
+        console.error('Failed to load project details:', error);
+        setError('Failed to load project details. Using cached data.');
+        // Continue with existing project data
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProjectDetails();
+  }, [project.id, onTaskListUpdate]);
   const [selectedProjectTask, setSelectedProjectTask] = useState<Task | null>(null);
   const [showTaskMenu, setShowTaskMenu] = useState<number | null>(null);
   const [showViewTaskModal, setShowViewTaskModal] = useState(false);
@@ -242,34 +322,34 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
 
   const handleAddTask = (): void => {
     onViewChange('add-task', { 
-      projectId: project.id, 
+      projectId: projectData.id, 
       taskLists: taskLists,
-      project: project 
+      project: projectData 
     });
   };
 
   // NEW: Handle adding task to specific task list
   const handleAddTaskToList = (taskListId: number): void => {
     onViewChange('add-task', { 
-      projectId: project.id, 
+      projectId: projectData.id, 
       taskLists: taskLists,
-      project: project,
+      project: projectData,
       preSelectedTaskListId: taskListId // Pass the pre-selected task list ID
     });
   };
 
   const handleAddTaskList = (): void => {
     onViewChange('add-task-list', { 
-      projectId: project.id, 
-      project: project 
+      projectId: projectData.id, 
+      project: projectData 
     });
   };
 
   const handleManageTaskLists = (): void => {
     onViewChange('manage-task-lists', { 
-      projectId: project.id, 
+      projectId: projectData.id, 
       taskLists: taskLists,
-      project: project 
+      project: projectData 
     });
   };
 
@@ -683,6 +763,31 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
+          {/* Loading State */}
+          {loading && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span className="text-blue-700 text-sm">Loading project details...</span>
+              </div>
+            </div>
+          )}
+          
+          {/* Error State */}
+          {error && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <span className="text-yellow-700 text-sm">{error}</span>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="text-yellow-600 hover:text-yellow-800 text-sm underline"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
@@ -694,14 +799,56 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
               </button>
               <div className="h-6 w-px bg-gray-300"></div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
-                <p className="text-gray-600 mt-1">{project.description}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{projectData.name}</h1>
+                <p className="text-gray-600 mt-1">{projectData.description}</p>
+                
+                {/* Project Stats */}
+                <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                  <div className="flex items-center space-x-1">
+                    <span>Progress:</span>
+                    <span className="font-medium text-gray-700">{projectData.progressPercentage}%</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <span>Tasks:</span>
+                    <span className="font-medium text-gray-700">{projectData.completedTasks}/{projectData.tasksCount}</span>
+                  </div>
+                  {projectData.dueDate && (
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>Due: {formatDate(projectData.dueDate)}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-3">
               <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                {project.status}
+                {projectData.status}
               </span>
+              
+              {/* Team Members Preview */}
+              {projectData.team && projectData.team.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-gray-400" />
+                  <div className="flex -space-x-1">
+                    {projectData.team.slice(0, 3).map((member, index) => (
+                      <div
+                        key={member.id}
+                        className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center border-2 border-white text-xs font-medium text-white"
+                        title={member.name}
+                      >
+                        {member.avatar}
+                      </div>
+                    ))}
+                    {projectData.team.length > 3 && (
+                      <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center border-2 border-white text-xs font-medium text-gray-600">
+                        +{projectData.team.length - 3}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               <button 
                 onClick={handleAddTaskList}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

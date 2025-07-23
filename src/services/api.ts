@@ -264,7 +264,129 @@ class ApiService {
   }
 
   async getProject(id: number) {
-    return this.request<{ project: any }>(`/projects/${id}`);
+    if (this.useMockData) {
+      console.log('Using mock data for project details');
+      return {
+        data: {
+          project: {
+            id: id,
+            name: "Sample Project",
+            description: "This is a sample project loaded from mock data",
+            status: "active",
+            priority: "medium",
+            progress_percentage: 45,
+            tasks_count: 8,
+            completed_tasks: 3,
+            created_at: "2024-01-15T10:30:00.000000Z",
+            updated_at: "2024-01-20T14:45:00.000000Z",
+            team: [
+              { id: 1, name: "John Doe", email: "john@example.com", role: "manager", avatar: "JD" },
+              { id: 2, name: "Jane Smith", email: "jane@example.com", role: "developer", avatar: "JS" }
+            ],
+            project_manager: { id: 1, name: "John Doe", email: "john@example.com", role: "manager", avatar: "JD" },
+            task_lists: [
+              {
+                id: 1,
+                name: "To Do",
+                description: "Tasks that are planned but not yet started",
+                color: "bg-gray-100",
+                order: 1,
+                tasks_count: 2,
+                tasks: [
+                  {
+                    id: 1,
+                    title: "Setup project structure",
+                    description: "Initialize the project with proper folder structure and dependencies",
+                    priority: "high",
+                    task_type: "general",
+                    assigned_to: { id: 1, name: "John Doe", avatar: "JD" },
+                    due_date: "2024-02-15",
+                    attachments_count: 0,
+                    comments_count: 1
+                  }
+                ]
+              },
+              {
+                id: 2,
+                name: "In Progress",
+                description: "Tasks currently being worked on",
+                color: "bg-blue-100",
+                order: 2,
+                tasks_count: 1,
+                tasks: [
+                  {
+                    id: 2,
+                    title: "Implement user authentication",
+                    description: "Add login and registration functionality",
+                    priority: "urgent",
+                    task_type: "feature",
+                    assigned_to: { id: 2, name: "Jane Smith", avatar: "JS" },
+                    due_date: "2024-02-10",
+                    attachments_count: 2,
+                    comments_count: 3
+                  }
+                ]
+              },
+              {
+                id: 3,
+                name: "Review",
+                description: "Tasks completed and awaiting review",
+                color: "bg-yellow-100",
+                order: 3,
+                tasks_count: 0,
+                tasks: []
+              },
+              {
+                id: 4,
+                name: "Done",
+                description: "Completed and approved tasks",
+                color: "bg-green-100",
+                order: 4,
+                tasks_count: 1,
+                tasks: [
+                  {
+                    id: 3,
+                    title: "Database design",
+                    description: "Design and implement database schema",
+                    priority: "medium",
+                    task_type: "general",
+                    assigned_to: { id: 1, name: "John Doe", avatar: "JD" },
+                    due_date: "2024-01-30",
+                    attachments_count: 1,
+                    comments_count: 2
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ project: any }>(`/projects/${id}`);
+    } catch (error) {
+      console.log('Falling back to mock data for project details');
+      return {
+        data: {
+          project: {
+            id: id,
+            name: "Sample Project",
+            description: "This is a sample project loaded from mock data",
+            status: "active",
+            priority: "medium",
+            progress_percentage: 45,
+            tasks_count: 8,
+            completed_tasks: 3,
+            created_at: "2024-01-15T10:30:00.000000Z",
+            updated_at: "2024-01-20T14:45:00.000000Z",
+            team: [],
+            project_manager: null,
+            task_lists: []
+          }
+        }
+      };
+    }
   }
 
   async createProject(projectData: any) {
