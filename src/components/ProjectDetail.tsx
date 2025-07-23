@@ -8,6 +8,7 @@ interface ProjectDetailProps {
   project: Project;
   onViewChange: (view: ViewType, data?: any) => void;
   onTaskListUpdate?: (taskLists: TaskList[]) => void;
+  selectedTaskListId?: number;
 }
 
 interface Comment {
@@ -25,7 +26,7 @@ interface Comment {
   }>;
 }
 
-const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, onTaskListUpdate }) => {
+const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, onTaskListUpdate, selectedTaskListId }) => {
   // State management
   const [projectData, setProjectData] = useState<Project>(project);
   const [taskLists, setTaskLists] = useState<TaskList[]>([]);
@@ -416,7 +417,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
     }, 500);
   };
 
-  const handleAddComment = async (): void => {
+  const handleAddComment = async (): Promise<void> => {
     if (!newComment.trim() && commentAttachments.length === 0) return;
 
     // Simulate file uploads
