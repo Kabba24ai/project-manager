@@ -79,10 +79,9 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
         return (
           <AddTaskForm 
             onViewChange={handleViewChange} 
-            selectedProject={{
-              ...selectedProject,
-              taskLists: globalTaskLists.filter(list => list.projectId === selectedProject?.id)
-            }}
+            selectedProject={data?.project || selectedProject}
+            selectedTaskListId={data?.taskListId}
+            taskLists={data?.taskLists || globalTaskLists.filter(list => list.projectId === (data?.project?.id || selectedProject?.id))}
             onTaskCreated={handleTaskCreated}
           />
         );
