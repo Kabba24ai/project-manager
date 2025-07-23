@@ -94,8 +94,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
     console.log('AddTaskForm - selectedProject:', selectedProject);
     console.log('AddTaskForm - taskLists:', taskLists);
     console.log('AddTaskForm - taskLists length:', taskLists?.length);
-    console.log('AddTaskForm - preSelectedTaskListId:', preSelectedTaskListId);
-  }, [selectedProject, taskLists, preSelectedTaskListId]);
+    console.log('AddTaskForm - preSelectedTaskListId:', selectedProject?.preSelectedTaskListId);
+  }, [selectedProject, taskLists, selectedProject?.preSelectedTaskListId]);
 
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [showTooltip, setShowTooltip] = useState(null);
@@ -1099,7 +1099,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                     e.preventDefault();
                     const files = Array.from(e.dataTransfer.files);
                     handleFileUpload({ target: { files } });
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  }}
                   onDragOver={(e) => e.preventDefault()}
                   onDragEnter={(e) => e.preventDefault()}
                 >
@@ -1131,16 +1131,14 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                 disabled={loading}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                  {(taskLists || []).map(list => (
+                {loading ? (
                   <>
-                      {list.name} ({(list.tasks || []).length} tasks)
                     <span>Creating...</span>
                   </>
                 ) : (
-                {(!taskLists || taskLists.length === 0) && (
+                  <>
                     <Save className="w-4 h-4" />
-                    No task lists available for this project. 
-                    {selectedProject ? ` Project: ${selectedProject.name}` : ' No project selected.'}
+                    <span>Create Task</span>
                   </>
                 )}
               </button>
