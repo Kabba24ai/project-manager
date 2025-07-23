@@ -306,55 +306,59 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
       </div>
 
       {/* Task Lists */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
         {project.taskLists && project.taskLists.length > 0 ? (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
             {project.taskLists.map((taskList) => (
               <div key={taskList.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className={`px-6 py-4 border-b border-gray-200 ${taskList.color}`}>
+                <div className={`px-4 py-3 ${taskList.color}`}>
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{taskList.name}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{taskList.description}</p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate">{taskList.name}</h3>
+                      <p className="text-sm text-gray-600 mt-1 truncate">{taskList.description}</p>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <span className="bg-white px-3 py-1 rounded-full text-sm font-medium text-gray-600">
+                    <div className="flex items-center space-x-2 ml-3">
+                      <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-600 whitespace-nowrap">
                         {taskList.tasks.length} tasks
                       </span>
                       <button
-                        onClick={() => onViewChange('add-task', project)}
-                        className="flex items-center space-x-1 px-3 py-1 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
+                        onClick={handleAddTask}
+                        className="flex items-center space-x-1 px-2 py-1 bg-white text-gray-700 rounded text-xs hover:bg-gray-50 transition-colors border border-gray-200 whitespace-nowrap"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-3 h-3" />
                         <span>Add Task</span>
-                      </button>
-                      <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                        <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-6">
+                <div className="p-4 min-h-[300px]">
                   {taskList.tasks.length > 0 ? (
                     <div className="space-y-3">
                       {taskList.tasks.map((task) => (
-                        <div key={task.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-medium text-gray-900">{task.title}</h4>
-                              <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                        <div key={task.id} className="p-3 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between">
+                              <h4 className="font-medium text-gray-900 text-sm line-clamp-2">{task.title}</h4>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ml-2 flex-shrink-0 ${getPriorityColor(task.priority)}`}>
                                 {task.priority}
                               </span>
+                            </div>
+                            <p className="text-xs text-gray-600 line-clamp-2">{task.description}</p>
+                            <div className="flex items-center justify-between">
                               {task.assignedTo && (
-                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                  <span className="text-xs font-medium text-white">
-                                    {task.assignedTo.avatar}
-                                  </span>
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <span className="text-xs font-medium text-white">
+                                      {task.assignedTo.avatar}
+                                    </span>
+                                  </div>
+                                  <span className="text-xs text-gray-600">{task.assignedTo.name}</span>
                                 </div>
+                              )}
+                              {task.dueDate && (
+                                <span className="text-xs text-gray-500">
+                                  Due: {new Date(task.dueDate).toLocaleDateString()}
+                                </span>
                               )}
                             </div>
                           </div>
@@ -362,15 +366,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Plus className="w-8 h-8 text-gray-400" />
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Plus className="w-6 h-6 text-gray-400" />
                       </div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks in {taskList.name}</h3>
-                      <p className="text-gray-500 mb-4">Get started by adding your first task to this list</p>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">No tasks in {taskList.name}</h4>
                       <button
-                        onClick={() => onViewChange('add-task', project)}
-                        className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                        onClick={handleAddTask}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
                       >
                         Add a task
                       </button>
@@ -383,14 +386,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
         ) : (
           <div className="text-center py-16">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Plus className="w-10 h-10 text-gray-400" />
+              <List className="w-10 h-10 text-gray-400" />
             </div>
             <h3 className="text-xl font-medium text-gray-900 mb-2">No Task Lists Yet</h3>
             <p className="text-gray-500 mb-8 max-w-md mx-auto">
-              Organize your project by creating task lists. You can create lists like "To Do", "In Progress", "Review", and "Done".
+              Get started by creating task lists to organize your project. You can create lists like "To Do", "In Progress", "Review", and "Done".
             </p>
             <button
-              onClick={() => onViewChange('add-task-list', project)}
+              onClick={handleAddTaskList}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Create Your First Task List
