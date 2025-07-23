@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Save, List } from 'lucide-react';
 import { ViewType, TaskList } from '../types';
-import apiService from '../services/api';
 
 interface AddTaskListFormProps {
   onViewChange: (view: ViewType, data?: any) => void;
@@ -71,43 +70,29 @@ const AddTaskListForm: React.FC<AddTaskListFormProps> = ({
     setLoading(true);
     
     try {
-      // Call Laravel API to create task list
-      const response = await apiService.createTaskList(selectedProject?.id || 1, {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create the new task list
+      const newTaskList: TaskList = {
+        id: Date.now(), // In real app, this would come from the API
         name: formData.name.trim(),
         description: formData.description.trim(),
         color: formData.color,
-      });
+        order: Date.now(), // Simple ordering by creation time
+        projectId: selectedProject?.id || 1,
+        tasks: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
       
-      if (response.data?.task_list) {
-        // Convert API response to frontend format
-        const newTaskList: TaskList = {
-          id: response.data.task_list.id,
-          name: response.data.task_list.name,
-          description: response.data.task_list.description || '',
-          color: response.data.task_list.color,
-          order: response.data.task_list.order,
-          projectId: response.data.task_list.project_id,
-          tasks: [],
-          createdAt: response.data.task_list.created_at,
-          updatedAt: response.data.task_list.updated_at
-        };
-        
-        // Add to global state
-        onTaskListCreated(newTaskList);
-      }
+      // Add to global state
+      onTaskListCreated(newTaskList);
       
       // Success - redirect back to project view
       onViewChange('project-detail', selectedProject);
     } catch (error) {
       console.error('Error creating task list:', error);
-      
-      // Don't show error for mock data fallback
-      if (!error.message?.includes('mock data')) {
-        alert('Failed to create task list. Please try again.');
-      } else {
-        // Still redirect to project view even with mock data
-        onViewChange('project-detail', selectedProject);
-      }
     } finally {
       setLoading(false);
     }
