@@ -352,7 +352,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
       projectId: projectData.id, 
       taskLists: taskLists,
       project: projectData,
-      preSelectedTaskListId: taskListId // Pass the pre-selected task list ID
+      preSelectedTaskListId: taskListId, // Pass the pre-selected task list ID
       taskLists: taskLists.map(list => ({
         id: list.id,
         name: list.name,
@@ -364,6 +364,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
         createdAt: list.createdAt,
         updatedAt: list.updatedAt
       }))
+    });
   };
 
   const handleAddTaskList = (): void => {
@@ -927,7 +928,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
 
                 {/* Tasks */}
                 <div className="divide-y divide-gray-100">
-                  {taskLists.length}
                   {sortTasks(taskList.tasks).length > 0 ? (
                     sortTasks(taskList.tasks).map((task) => {
                       const lastComment = getLastComment(task.id);
@@ -1095,7 +1095,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
               onClick={handleAddTaskList}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              {}
               Create Your First Task List
             </button>
           </div>
