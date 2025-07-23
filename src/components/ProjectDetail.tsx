@@ -353,7 +353,17 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
       taskLists: taskLists,
       project: projectData,
       preSelectedTaskListId: taskListId // Pass the pre-selected task list ID
-    });
+      taskLists: taskLists.map(list => ({
+        id: list.id,
+        name: list.name,
+        description: list.description,
+        color: list.color,
+        order: list.order,
+        projectId: list.projectId,
+        tasks: list.tasks || [],
+        createdAt: list.createdAt,
+        updatedAt: list.updatedAt
+      }))
   };
 
   const handleAddTaskList = (): void => {
