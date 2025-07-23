@@ -43,11 +43,12 @@ class TaskResource extends JsonResource
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'attachments' => AttachmentResource::collection($this->whenLoaded('attachments')),
 
-            // Additional computed fields
+            // Additional computed fields (Laravel 12 features)
             'is_overdue' => $this->due_date?->isPast() && $this->status !== 'Done',
             'days_until_due' => $this->due_date ? now()->diffInDays($this->due_date, false) : null,
             'formatted_priority' => ucfirst($this->priority),
             'formatted_task_type' => $this->getFormattedTaskType(),
+            'progress_status' => $this->getProgressStatus(),
         ];
     }
 
@@ -56,11 +57,31 @@ class TaskResource extends JsonResource
      */
     private function getFormattedTaskType(): string
     {
-        // Laravel 12 match expression (PHP 8.0+)
         return match($this->task_type) {
             'equipmentId' => 'Equipment ID',
             'customerName' => 'Customer',
+            'taskType' => 'Task Type',
             default => ucfirst($this->task_type)
         };
+    }
+
+    /**
+     * Get progress status based on task list and dates (Laravel 12 feature)
+     */
+    private function getProgressStatus(): string
+    {
+        if ($this->status === 'Done') {
+            return 'completed';
+        }
+
+        if ($this->due_date && $this->due_date->isPast()) {
+            return 'overdue';
+        }
+
+        if ($this->status === 'In Progress') {
+            return 'in_progress';
+        }
+
+        return 'pending';
     }
 }

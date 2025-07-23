@@ -34,6 +34,7 @@ class TaskListResource extends JsonResource
             'color_preview' => $this->getColorPreview(),
             'formatted_name' => ucwords($this->name),
             'can_be_deleted' => $this->tasks_count === 0,
+            'completion_percentage' => $this->getCompletionPercentage(),
         ];
     }
 
@@ -53,5 +54,21 @@ class TaskListResource extends JsonResource
             'bg-gray-100' => ['name' => 'Gray', 'hex' => '#f3f4f6'],
             default => ['name' => 'Default', 'hex' => '#f3f4f6']
         };
+    }
+
+    /**
+     * Calculate completion percentage for this task list (Laravel 12 feature)
+     */
+    private function getCompletionPercentage(): float
+    {
+        if (!$this->relationLoaded('tasks') || $this->tasks->isEmpty()) {
+            return 0.0;
+        }
+
+        $completedTasks = $this->tasks->filter(function ($task) {
+            return $task->taskList && $task->taskList->name === 'Done';
+        })->count();
+
+        return round(($completedTasks / $this->tasks->count()) * 100, 1);
     }
 }

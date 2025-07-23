@@ -7,6 +7,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProjectResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array (Laravel 12 compatible).
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -36,8 +41,8 @@ class ProjectResource extends JsonResource
             'tasks_count' => $this->tasks_count,
             'completed_tasks' => $this->completed_tasks,
             'progress_percentage' => $this->progress_percentage,
-            'created_at' => $this->created_at->toISOString(),
-            'updated_at' => $this->updated_at->toISOString(),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
             
             // Relationships
             'team' => UserResource::collection($this->whenLoaded('team')),
@@ -45,9 +50,26 @@ class ProjectResource extends JsonResource
             'creator' => new UserResource($this->whenLoaded('creator')),
             'task_lists' => TaskListResource::collection($this->whenLoaded('taskLists')),
             
-            // Computed fields
+            // Computed fields (Laravel 12 features)
             'is_overdue' => $this->due_date && $this->due_date->isPast() && $this->status !== 'completed',
             'days_until_due' => $this->due_date ? now()->diffInDays($this->due_date, false) : null,
+            'formatted_status' => ucwords(str_replace('-', ' ', $this->status)),
+            'formatted_priority' => ucfirst($this->priority),
+            'team_count' => $this->whenLoaded('team', fn() => $this->team->count(), 0),
+            'can_user_edit' => $this->canUserEdit($request->user()),
         ];
+    }
+
+    /**
+     * Check if current user can edit this project (Laravel 12 helper method)
+     */
+    private function canUserEdit($user): bool
+    {
+        if (!$user) return false;
+        
+        return $this->created_by === $user->id ||
+               $this->project_manager_id === $user->id ||
+               $user->role === 'admin' ||
+               $this->team->where('id', $user->id)->where('pivot.role', 'manager')->isNotEmpty();
     }
 }
