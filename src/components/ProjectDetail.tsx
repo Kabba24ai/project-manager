@@ -347,24 +347,36 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
   };
 
   // NEW: Handle adding task to specific task list
-  const handleAddTaskToList = (taskListId: number): void => {
-  onViewChange('add-task', { 
-    projectId: projectData.id, 
-    taskLists: taskLists.map(list => ({
-      id: list.id,
-      name: list.name,
-      description: list.description,
-      color: list.color,
-      order: list.order,
-      projectId: list.projectId,
-      tasks: list.tasks || [],
-      createdAt: list.createdAt,
-      updatedAt: list.updatedAt
-    })),
-    project: projectData,
-    preSelectedTaskListId: taskListId
-  });
-};
+  const handleAddTaskToList = (taskListId?: number) => {
+    console.log('handleAddTaskToList called with:', taskListId);
+    console.log('Current project data:', projectData);
+    console.log('Available task lists:', taskLists);
+    
+    // Ensure we have the required data before navigating
+    if (!projectData) {
+      console.error('No project data available');
+      alert('Project data not loaded. Please refresh the page.');
+      return;
+    }
+    
+    if (!taskLists || taskLists.length === 0) {
+      console.error('No task lists available');
+      alert('No task lists available. Please create a task list first.');
+      return;
+    }
+    
+    console.log('Navigating to add-task with data:', {
+      project: projectData,
+      taskListId: taskListId,
+      taskLists: taskLists
+    });
+    
+    onViewChange('add-task', {
+      project: projectData,
+      taskListId: taskListId,
+      taskLists: taskLists
+    });
+  };
 
   const handleAddTaskList = (): void => {
     onViewChange('add-task-list', { 
