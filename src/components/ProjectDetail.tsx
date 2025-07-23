@@ -348,24 +348,23 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
 
   // NEW: Handle adding task to specific task list
   const handleAddTaskToList = (taskListId: number): void => {
-    onViewChange('add-task', { 
-      projectId: projectData.id, 
-      taskLists: taskLists,
-      project: projectData,
-      preSelectedTaskListId: taskListId, // Pass the pre-selected task list ID
-      taskLists: taskLists.map(list => ({
-        id: list.id,
-        name: list.name,
-        description: list.description,
-        color: list.color,
-        order: list.order,
-        projectId: list.projectId,
-        tasks: list.tasks || [],
-        createdAt: list.createdAt,
-        updatedAt: list.updatedAt
-      }))
-    });
-  };
+  onViewChange('add-task', { 
+    projectId: projectData.id, 
+    taskLists: taskLists.map(list => ({
+      id: list.id,
+      name: list.name,
+      description: list.description,
+      color: list.color,
+      order: list.order,
+      projectId: list.projectId,
+      tasks: list.tasks || [],
+      createdAt: list.createdAt,
+      updatedAt: list.updatedAt
+    })),
+    project: projectData,
+    preSelectedTaskListId: taskListId
+  });
+};
 
   const handleAddTaskList = (): void => {
     onViewChange('add-task-list', { 
