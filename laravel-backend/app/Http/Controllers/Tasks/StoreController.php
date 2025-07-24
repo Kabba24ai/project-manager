@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\TaskList;
+use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
@@ -13,19 +14,39 @@ use Illuminate\Support\Str;
 class StoreController extends Controller
 {
     /**
-     * Create a new task
+     * Create a new task (Laravel 12 compatible)
      */
     public function __invoke(StoreTaskRequest $request, TaskList $taskList): JsonResponse
     {
         $this->authorize('update', $taskList->project);
 
+        // Validate that assigned user exists and is part of the project team
+        $assignedUser = \App\Models\User::findOrFail($request->assigned_to);
+        if (!$taskList->project->team->contains($assignedUser->id) && 
+            $taskList->project->project_manager_id !== $assignedUser->id) {
+            return response()->json([
+                'message' => 'Assigned user must be a member of the project team',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
         $task = $taskList->tasks()->create([
-            ...$request->validated(),
             'project_id' => $taskList->project_id,
+            'task_list_id' => $taskList->id,
+            'title' => $request->title,
+            'description' => $request->description,
+            'priority' => $request->priority ?? 'medium',
+            'task_type' => $request->task_type ?? 'general',
+            'assigned_to' => $request->assigned_to,
             'created_by' => $request->user()->id,
+            'start_date' => $request->start_date,
+            'due_date' => $request->due_date,
+            'estimated_hours' => $request->estimated_hours,
+            'tags' => $request->tags ?? [],
+            'equipment_id' => $request->equipment_id,
+            'customer_id' => $request->customer_id,
         ]);
 
-        $task->load(['assignedTo', 'taskList']);
+        // Load relationships for response
+        $task->load(['assignedTo', 'creator', 'taskList', 'project']);
 
         return response()->json([
             'task' => new TaskResource($task),

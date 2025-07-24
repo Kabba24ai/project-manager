@@ -1006,6 +1006,9 @@ class ApiService {
   }
 
   async createTask(taskListId: number, taskData: any) {
+    console.log('🔄 API: Creating task in task list:', taskListId);
+    console.log('📝 API: Task data:', taskData);
+    
     if (this.useMockData) {
       console.log('Using mock data for task creation');
       const mockTask = {
@@ -1033,11 +1036,13 @@ class ApiService {
     }
     
     try {
+      console.log('🌐 API: Making request to:', `${API_BASE_URL}/task-lists/${taskListId}/tasks`);
       return this.request<{ task: any }>(`/task-lists/${taskListId}/tasks`, {
         method: 'POST',
         body: JSON.stringify(taskData),
       });
     } catch (error) {
+      console.error('❌ API: Task creation failed:', error);
       console.log('Falling back to mock data for task creation');
       this.useMockData = true;
       const mockTask = {
@@ -1066,6 +1071,8 @@ class ApiService {
   }
 
   async updateTask(taskId: number, taskData: any) {
+    console.log('🔄 API: Creating task with attachments in task list:', taskListId);
+    
     if (this.useMockData) {
       console.log('Using mock data for task update');
       return {
@@ -1199,6 +1206,7 @@ class ApiService {
     }
     
     try {
+    console.log('🌐 API: Making file upload request to:', url);
       const url = `${API_BASE_URL}/attachments`;
       
       const headers: HeadersInit = {
@@ -1225,6 +1233,8 @@ class ApiService {
       }
 
       if (!response.ok) {
+        console.error('❌ API: File upload failed with status:', response.status);
+        console.error('❌ API: Error response:', data);
         if (response.status === 401) {
           this.useMockData = true;
           throw new Error('Backend unavailable - using mock data');
@@ -1232,8 +1242,10 @@ class ApiService {
         throw new Error(data.message || 'Upload failed');
       }
 
+      console.log('✅ API: Task with attachments created successfully:', data);
       return data;
     } catch (error) {
+      console.error('❌ API: Task with attachments creation failed:', error);
       console.log('Falling back to mock data for attachment upload');
       this.useMockData = true;
       return {

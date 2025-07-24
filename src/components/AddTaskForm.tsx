@@ -316,6 +316,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       const taskData = {
         title: formData.title,
         description: formData.description,
+        equipment_id: formData.equipmentId ? parseInt(formData.equipmentId) : null,
+        customer_id: formData.customerId ? parseInt(formData.customerId) : null,
         priority: formData.priority.toLowerCase(),
         task_type: formData.taskType,
         assigned_to: parseInt(formData.assignedTo),
@@ -327,10 +329,14 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
         customer_id: formData.customerId ? parseInt(formData.customerId) : null
       };
 
+      console.log('🚀 AddTaskForm: Submitting task data:', taskData);
+      console.log('📋 AddTaskForm: Target task list ID:', preSelectedTaskListId);
+      console.log('📎 AddTaskForm: Attachments count:', formData.attachments.length);
       let response;
       
       // Create task with or without attachments
       if (formData.attachments.length > 0) {
+        console.log('📎 AddTaskForm: Creating task with attachments');
         // Create FormData for file upload
         const formDataWithFiles = new FormData();
         
@@ -354,6 +360,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       
       console.log('✅ Task created successfully:', response);
       
+        console.log('📝 AddTaskForm: Creating task without attachments');
       // Get the created task from response
       const createdTask = response.data?.task;
       
@@ -383,12 +390,21 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
         
         onTaskCreated(newTask);
       }
+      console.log('✅ AddTaskForm: Task created successfully:', response);
       
       // Success - redirect back to project view
       onViewChange(selectedProject ? 'project-detail' : 'dashboard');
     } catch (error) {
       console.error('Error creating task:', error);
       
+      // Show user-friendly error message
+      if (error.message?.includes('Assigned user must be a member')) {
+        alert('Error: The assigned user must be a member of the project team.');
+      } else if (error.message?.includes('validation')) {
+        alert('Error: Please check all required fields and try again.');
+      } else {
+        alert('Failed to create task. Please try again.');
+      }
       // Show user-friendly error message
       if (error.message?.includes('mock data')) {
         // Still redirect on mock data success

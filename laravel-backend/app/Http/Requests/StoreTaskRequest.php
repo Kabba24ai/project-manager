@@ -32,6 +32,7 @@ class StoreTaskRequest extends FormRequest
             'tags.*' => 'string',
             'equipment_id' => 'nullable|integer',
             'customer_id' => 'nullable|integer',
+            'sprint_id' => 'nullable|integer',
             // Laravel 12 enhanced file validation
             'attachments' => 'nullable|array|max:10',
             'attachments.*' => [
@@ -77,3 +78,15 @@ class StoreTaskRequest extends FormRequest
         }
     }
 }
+        // Convert string IDs to integers
+        if ($this->has('assigned_to')) {
+            $this->merge(['assigned_to' => (int) $this->assigned_to]);
+        }
+        
+        if ($this->has('equipment_id') && $this->equipment_id) {
+            $this->merge(['equipment_id' => (int) $this->equipment_id]);
+        }
+        
+        if ($this->has('customer_id') && $this->customer_id) {
+            $this->merge(['customer_id' => (int) $this->customer_id]);
+        }
