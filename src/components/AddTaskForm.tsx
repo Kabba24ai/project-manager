@@ -25,7 +25,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   });
 
   // Get task lists from the selected project data - NO DEFAULT LISTS
-  const [taskLists] = useState<TaskList[]>(selectedProject?.taskLists || []);
+  const [taskLists] = useState<TaskList[]>(selectedProject?.task_lists || []);
 
   // Real users from API
   const [users, setUsers] = useState([]);
@@ -474,7 +474,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   };
 
   // Check if we have task lists available
-  alert(JSON.stringify(taskLists));
+  //alert(JSON.stringify(selectedProject));
   if (taskLists.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
