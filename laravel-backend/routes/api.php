@@ -91,7 +91,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', ProjectIndexController::class);
         Route::post('/', ProjectStoreController::class);
         Route::get('/{project}', ProjectShowController::class);
-        Route::get('/{project}', ProjectShowController::class);
         Route::put('/{project}', ProjectUpdateController::class);
         Route::delete('/{project}', ProjectDeleteController::class);
     });
@@ -111,7 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('task-lists/{taskList}/tasks')->group(function () {
         Route::get('/', TaskIndexController::class);
         Route::post('/', TaskStoreController::class);
-        Route::post('/with-attachments', [TaskController::class, 'storeWithAttachments']);
+        Route::post('/with-attachments', TaskStoreController::class . '@storeWithAttachments');
     });
     
     Route::prefix('tasks')->group(function () {
@@ -136,6 +135,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('attachments')->group(function () {
         Route::post('/', AttachmentStoreController::class);
         Route::delete('/{attachment}', AttachmentDeleteController::class);
+    });
+    
+    // Equipment Routes (for task assignment)
+    Route::prefix('equipment')->group(function () {
+        Route::get('/', [EquipmentController::class, 'index']);
+        Route::get('/{id}', [EquipmentController::class, 'show']);
+    });
+    
+    // Customer Routes (for task assignment)
+    Route::prefix('customers')->group(function () {
+        Route::get('/', [CustomerController::class, 'index']);
+        Route::get('/{id}', [CustomerController::class, 'show']);
     });
 });
 

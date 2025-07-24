@@ -800,6 +800,80 @@ class ApiService {
     }
   }
 
+  async getEquipment(params?: { search?: string; status?: string; type?: string }) {
+    if (this.useMockData) {
+      console.log('Using mock data for equipment');
+      return {
+        data: {
+          equipment: [
+            { id: 1, name: 'MacBook Pro 16"', code: 'MBP-001', type: 'computer', status: 'active' },
+            { id: 2, name: 'Dell OptiPlex 7090', code: 'PC-002', type: 'computer', status: 'active' },
+            { id: 3, name: 'Canon EOS R5', code: 'CAM-001', type: 'tool', status: 'active' }
+          ]
+        }
+      };
+    }
+    
+    try {
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.append('search', params.search);
+      if (params?.status) searchParams.append('status', params.status);
+      if (params?.type) searchParams.append('type', params.type);
+      
+      const query = searchParams.toString();
+      return this.request<{ equipment: any[] }>(`/equipment${query ? `?${query}` : ''}`);
+    } catch (error) {
+      console.log('Falling back to mock data for equipment');
+      this.useMockData = true;
+      return {
+        data: {
+          equipment: [
+            { id: 1, name: 'MacBook Pro 16"', code: 'MBP-001', type: 'computer', status: 'active' },
+            { id: 2, name: 'Dell OptiPlex 7090', code: 'PC-002', type: 'computer', status: 'active' },
+            { id: 3, name: 'Canon EOS R5', code: 'CAM-001', type: 'tool', status: 'active' }
+          ]
+        }
+      };
+    }
+  }
+
+  // Customers
+  async getCustomers(params?: { search?: string; status?: string }) {
+    if (this.useMockData) {
+      console.log('Using mock data for customers');
+      return {
+        data: {
+          customers: [
+            { id: 1, name: 'John Smith', company: 'TechCorp Solutions', email: 'john.smith@techcorp.com', status: 'active' },
+            { id: 2, name: 'Sarah Johnson', company: 'InnovateTech Inc', email: 'sarah@innovatetech.com', status: 'active' },
+            { id: 3, name: 'Michael Chen', company: 'Digital Future LLC', email: 'mchen@digitalfuture.com', status: 'active' }
+          ]
+        }
+      };
+    }
+    
+    try {
+      const searchParams = new URLSearchParams();
+      if (params?.search) searchParams.append('search', params.search);
+      if (params?.status) searchParams.append('status', params.status);
+      
+      const query = searchParams.toString();
+      return this.request<{ customers: any[] }>(`/customers${query ? `?${query}` : ''}`);
+    } catch (error) {
+      console.log('Falling back to mock data for customers');
+      this.useMockData = true;
+      return {
+        data: {
+          customers: [
+            { id: 1, name: 'John Smith', company: 'TechCorp Solutions', email: 'john.smith@techcorp.com', status: 'active' },
+            { id: 2, name: 'Sarah Johnson', company: 'InnovateTech Inc', email: 'sarah@innovatetech.com', status: 'active' },
+            { id: 3, name: 'Michael Chen', company: 'Digital Future LLC', email: 'mchen@digitalfuture.com', status: 'active' }
+          ]
+        }
+      };
+    }
+  }
+
   // Tasks
   async getTasks(taskListId: number) {
     if (this.useMockData) {
