@@ -338,6 +338,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
   };
 
   const handleAddTask = (): void => {
+    alert(JSON.stringify(taskLists));
     onViewChange('add-task', { 
       projectId: projectData.id, 
       taskLists: taskLists,
@@ -416,7 +417,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
     }, 500);
   };
 
-  const handleAddComment = async (): Promise<void> => {
+  const handleAddComment = async (): void => {
     if (!newComment.trim() && commentAttachments.length === 0) return;
 
     // Simulate file uploads
@@ -781,7 +782,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 flex-1 min-w-0">
               <button
                 onClick={() => onViewChange('dashboard')}
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
@@ -789,8 +790,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
                 <ArrowLeft className="w-5 h-5" />
                 <span>Back to Projects</span>
               </button>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div>
+              <div className="h-6 w-px bg-gray-300" ></div>
+              <div >
                 <div className="flex items-center space-x-3">
                   <h1 className="text-2xl font-bold text-gray-900">{projectData.name}</h1>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -1081,6 +1082,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
               onClick={handleAddTaskList}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
+              {}
               Create Your First Task List
             </button>
           </div>
