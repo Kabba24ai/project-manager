@@ -929,6 +929,66 @@ class ApiService {
     }
   }
 
+  async createTask(taskListId: number, taskData: any) {
+    if (this.useMockData) {
+      console.log('Using mock data for task creation');
+      const mockTask = {
+        id: Date.now(),
+        ...taskData,
+        task_list_id: taskListId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        attachments_count: 0,
+        comments_count: 0,
+        assigned_to: {
+          id: taskData.assigned_to,
+          name: 'Mock User',
+          email: 'mock@example.com',
+          role: 'developer',
+          avatar: 'MU'
+        }
+      };
+      return {
+        data: {
+          task: mockTask,
+          message: 'Task created successfully (mock data)'
+        }
+      };
+    }
+    
+    try {
+      return this.request<{ task: any }>(`/task-lists/${taskListId}/tasks`, {
+        method: 'POST',
+        body: JSON.stringify(taskData),
+      });
+    } catch (error) {
+      console.log('Falling back to mock data for task creation');
+      this.useMockData = true;
+      const mockTask = {
+        id: Date.now(),
+        ...taskData,
+        task_list_id: taskListId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        attachments_count: 0,
+        comments_count: 0,
+        assigned_to: {
+          id: taskData.assigned_to,
+          name: 'Mock User',
+          email: 'mock@example.com',
+          role: 'developer',
+          avatar: 'MU'
+        }
+      };
+      return {
+        data: {
+          task: mockTask,
+          message: 'Task created successfully (mock data)'
+        }
+      };
+    }
+  }
+
   async updateTask(taskId: number, taskData: any) {
     if (this.useMockData) {
       console.log('Using mock data for task update');
