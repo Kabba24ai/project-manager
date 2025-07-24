@@ -416,7 +416,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
     }, 500);
   };
 
-  const handleAddComment = async (): void => {
+  const handleAddComment = async (): Promise<void> => {
     if (!newComment.trim() && commentAttachments.length === 0) return;
 
     // Simulate file uploads
@@ -1081,7 +1081,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, onViewChange, on
               onClick={handleAddTaskList}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              {}
               Create Your First Task List
             </button>
           </div>

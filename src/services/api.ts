@@ -650,9 +650,11 @@ class ApiService {
     }
     
     try {
+      console.log('🔄 API: Fetching task lists for project:', projectId);
       return this.request<{ task_lists: any[] }>(`/projects/${projectId}/task-lists`);
     } catch (error) {
-      console.log('Falling back to mock data for task lists');
+      console.error('❌ API: Failed to fetch task lists:', error);
+      console.log('🔄 API: Falling back to mock data for task lists');
       this.useMockData = true;
       return {
         data: {
