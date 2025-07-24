@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { ArrowLeft, Save, Upload, X, Search, ChevronDown, Calendar, User, Flag } from 'lucide-react';
 import { ViewType, TaskList, Task } from '../types';
+import { useUsers } from '../hooks/useApi';
+import apiService from '../services/api';
 
 interface AddTaskFormProps {
   onViewChange: (view: ViewType, data?: any) => void;
@@ -9,6 +11,9 @@ interface AddTaskFormProps {
 }
 
 const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject, onTaskCreated }) => {
+  // API hooks
+  const { users: apiUsers, loading: usersLoading, fetchUsers } = useUsers();
+
   // Mock project settings - this would come from the selected project
   const [projectSettings] = useState({
     taskTypes: {
@@ -22,52 +27,23 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   // Get task lists from the selected project data - NO DEFAULT LISTS
   const [taskLists] = useState<TaskList[]>(selectedProject?.taskLists || []);
 
-  // Mock data - these would come from API calls
-  const [users] = useState([
-    { id: 1, name: 'John Smith', role: 'Developer', avatar: 'JS' },
-    { id: 2, name: 'Sarah Johnson', role: 'Designer', avatar: 'SJ' },
-    { id: 3, name: 'Mike Chen', role: 'Project Manager', avatar: 'MC' },
-    { id: 4, name: 'Emily Davis', role: 'Tester', avatar: 'ED' }
-  ]);
+  // Real users from API
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
-  const [sprints] = useState([
-    { id: 1, name: 'Sprint 1 - Setup & Planning', status: 'Active' },
-    { id: 2, name: 'Sprint 2 - Core Development', status: 'Planned' },
-    { id: 3, name: 'Sprint 3 - Testing & Polish', status: 'Planned' }
-  ]);
+  // Mock sprints - this would be replaced with real API call when sprint feature is implemented
+  const [sprints] = useState([]);
 
-  // Mock equipment data - placeholder for rental system integration (sorted alphabetically)
-  const [equipmentCategories] = useState([
-    { 
-      id: 1, 
-      name: 'Construction Equipment',
-      equipment: [
-        { id: 103, name: 'Bobcat Skid Steer - #SKI003', available: true },
-        { id: 101, name: 'CAT 320 Excavator - #EXC001', available: true },
-        { id: 102, name: 'John Deere Bulldozer - #BUL002', available: false }
-      ]
-    },
-    { 
-      id: 2, 
-      name: 'Power Tools',
-      equipment: [
-        { id: 201, name: 'DeWalt Hammer Drill - #DRL001', available: true },
-        { id: 202, name: 'Makita Circular Saw - #SAW002', available: true }
-      ]
-    }
-  ].sort((a, b) => a.name.localeCompare(b.name)));
+  // Equipment data - placeholder for future equipment API integration
+  const [equipmentCategories, setEquipmentCategories] = useState([]);
+  const [loadingEquipment, setLoadingEquipment] = useState(false);
 
-  // All equipment in one list (alphabetically sorted)
-  const allEquipment = equipmentCategories
-    .flatMap(category => category.equipment)
-    .sort((a, b) => a.name.localeCompare(b.name));
+  // All equipment in one list
+  const allEquipment = equipmentCategories.flatMap(category => category.equipment || []);
 
-  // Mock customer data - placeholder for customer portal integration (sorted alphabetically)
-  const [customers] = useState([
-    { id: 1, name: 'ABC Construction Co.', email: 'contact@abcconstruction.com', phone: '(555) 123-4567' },
-    { id: 3, name: 'Smith & Associates', email: 'office@smithassoc.com', phone: '(555) 456-7890' },
-    { id: 2, name: 'XYZ Builders Inc.', email: 'info@xyzbuilders.com', phone: '(555) 987-6543' }
-  ].sort((a, b) => a.name.localeCompare(b.name)));
+  // Customer data - placeholder for future customer API integration
+  const [customers, setCustomers] = useState([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
 
   const [formData, setFormData] = useState({
     taskType: '',
@@ -92,6 +68,103 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [showTooltip, setShowTooltip] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Load users on component mount
+  React.useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        setLoadingUsers(true);
+        await fetchUsers();
+        setUsers(apiUsers);
+      } catch (error) {
+        console.error('Failed to load users:', error);
+        // Fallback to empty array
+        setUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    loadUsers();
+  }, [fetchUsers]);
+
+  // Update users when API data changes
+  React.useEffect(() => {
+    if (apiUsers && apiUsers.length > 0) {
+      setUsers(apiUsers);
+      setLoadingUsers(false);
+    }
+  }, [apiUsers]);
+
+  // Load equipment data (placeholder for future implementation)
+  React.useEffect(() => {
+    const loadEquipment = async () => {
+      if (formData.taskType === 'equipmentId') {
+        setLoadingEquipment(true);
+        try {
+          // TODO: Replace with real equipment API call
+          // const response = await apiService.getEquipment();
+          // setEquipmentCategories(response.data?.equipment_categories || []);
+          
+          // For now, use placeholder data
+          setEquipmentCategories([
+            { 
+              id: 1, 
+              name: 'Construction Equipment',
+              equipment: [
+                { id: 103, name: 'Bobcat Skid Steer - #SKI003', available: true },
+                { id: 101, name: 'CAT 320 Excavator - #EXC001', available: true },
+                { id: 102, name: 'John Deere Bulldozer - #BUL002', available: false }
+              ]
+            },
+            { 
+              id: 2, 
+              name: 'Power Tools',
+              equipment: [
+                { id: 201, name: 'DeWalt Hammer Drill - #DRL001', available: true },
+                { id: 202, name: 'Makita Circular Saw - #SAW002', available: true }
+              ]
+            }
+          ]);
+        } catch (error) {
+          console.error('Failed to load equipment:', error);
+          setEquipmentCategories([]);
+        } finally {
+          setLoadingEquipment(false);
+        }
+      }
+    };
+
+    loadEquipment();
+  }, [formData.taskType]);
+
+  // Load customers data (placeholder for future implementation)
+  React.useEffect(() => {
+    const loadCustomers = async () => {
+      if (formData.taskType === 'customerName') {
+        setLoadingCustomers(true);
+        try {
+          // TODO: Replace with real customer API call
+          // const response = await apiService.getCustomers();
+          // setCustomers(response.data?.customers || []);
+          
+          // For now, use placeholder data
+          setCustomers([
+            { id: 1, name: 'ABC Construction Co.', email: 'contact@abcconstruction.com', phone: '(555) 123-4567' },
+            { id: 3, name: 'Smith & Associates', email: 'office@smithassoc.com', phone: '(555) 456-7890' },
+            { id: 2, name: 'XYZ Builders Inc.', email: 'info@xyzbuilders.com', phone: '(555) 987-6543' }
+          ]);
+        } catch (error) {
+          console.error('Failed to load customers:', error);
+          setCustomers([]);
+        } finally {
+          setLoadingCustomers(false);
+        }
+      }
+    };
+
+    loadCustomers();
+  }, [formData.taskType]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -232,40 +305,97 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create the new task
-      const assignedUser = users.find(user => user.id.toString() === formData.assignedTo.toString());
+      // Get the selected task list
       const selectedTaskList = taskLists.find(list => list.id.toString() === formData.taskListId.toString());
       
-      const newTask: Task = {
-        id: Date.now(), // In real app, this would come from the API
+      if (!selectedTaskList) {
+        throw new Error('Selected task list not found');
+      }
+
+      // Prepare task data for API
+      const taskData = {
         title: formData.title,
         description: formData.description,
         priority: formData.priority.toLowerCase(),
-        status: selectedTaskList?.name || 'To Do',
-        assignedTo: assignedUser || users[0],
-        projectId: selectedProject?.id || 1,
-        taskListId: parseInt(formData.taskListId),
-        dueDate: formData.dueDate,
-        startDate: formData.startDate,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        attachments: formData.attachments.length,
-        comments: 0,
-        taskType: formData.taskType,
+        task_type: formData.taskType,
+        assigned_to: parseInt(formData.assignedTo),
+        start_date: formData.startDate || null,
+        due_date: formData.dueDate || null,
+        estimated_hours: null,
         tags: [],
-        estimatedHours: 0
+        equipment_id: formData.equipmentId ? parseInt(formData.equipmentId) : null,
+        customer_id: formData.customerId ? parseInt(formData.customerId) : null
       };
+
+      let response;
       
-      // Add to global state
-      onTaskCreated?.(newTask);
+      // Create task with or without attachments
+      if (formData.attachments.length > 0) {
+        // Create FormData for file upload
+        const formDataWithFiles = new FormData();
+        
+        // Add task data
+        Object.keys(taskData).forEach(key => {
+          if (taskData[key] !== null && taskData[key] !== undefined) {
+            formDataWithFiles.append(key, taskData[key]);
+          }
+        });
+        
+        // Add files
+        formData.attachments.forEach((file, index) => {
+          formDataWithFiles.append(`attachments[${index}]`, file);
+        });
+        
+        response = await apiService.createTaskWithAttachments(selectedTaskList.id, formDataWithFiles);
+      } else {
+        // Create task without attachments
+        response = await apiService.createTask(selectedTaskList.id, taskData);
+      }
+      
+      console.log('✅ Task created successfully:', response);
+      
+      // Get the created task from response
+      const createdTask = response.data?.task;
+      
+      if (createdTask && onTaskCreated) {
+        // Convert API response to frontend Task format
+        const assignedUser = users.find(user => user.id === createdTask.assigned_to?.id) || createdTask.assigned_to;
+        
+        const newTask: Task = {
+          id: createdTask.id,
+          title: createdTask.title,
+          description: createdTask.description,
+          priority: createdTask.priority,
+          status: selectedTaskList.name,
+          assignedTo: assignedUser,
+          projectId: selectedProject?.id || createdTask.project_id,
+          taskListId: createdTask.task_list_id,
+          dueDate: createdTask.due_date,
+          startDate: createdTask.start_date,
+          createdAt: createdTask.created_at,
+          updatedAt: createdTask.updated_at,
+          attachments: createdTask.attachments_count || 0,
+          comments: createdTask.comments_count || 0,
+          taskType: createdTask.task_type,
+          tags: createdTask.tags || [],
+          estimatedHours: createdTask.estimated_hours || 0
+        };
+        
+        onTaskCreated(newTask);
+      }
       
       // Success - redirect back to project view
       onViewChange(selectedProject ? 'project-detail' : 'dashboard');
     } catch (error) {
       console.error('Error creating task:', error);
+      
+      // Show user-friendly error message
+      if (error.message?.includes('mock data')) {
+        // Still redirect on mock data success
+        onViewChange(selectedProject ? 'project-detail' : 'dashboard');
+      } else {
+        alert('Failed to create task. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -592,16 +722,17 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="equipmentCategory" className="block text-sm font-medium text-gray-700 mb-2">
-                        Equipment Category (Optional Filter)
+                        Equipment Category {loadingEquipment ? '(Loading...)' : '(Optional Filter)'}
                       </label>
                       <select
                         id="equipmentCategory"
                         name="equipmentCategory"
                         value={formData.equipmentCategory}
                         onChange={handleInputChange}
+                        disabled={loadingEquipment}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       >
-                        <option value="">All Categories</option>
+                        <option value="">{loadingEquipment ? 'Loading...' : 'All Categories'}</option>
                         {equipmentCategories.map(category => (
                           <option key={category.id} value={category.id}>
                             {category.name}
@@ -618,12 +749,14 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                         <button
                           type="button"
                           onClick={() => setShowEquipmentDropdown(!showEquipmentDropdown)}
+                          disabled={loadingEquipment}
                           className={`w-full px-4 py-3 border rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors flex items-center justify-between ${
                             errors.equipmentId ? 'border-red-300 bg-red-50' : 'border-gray-300'
                           }`}
                         >
                           <span className={formData.equipmentId ? 'text-gray-900' : 'text-gray-500'}>
-                            {formData.equipmentId 
+                            {loadingEquipment ? 'Loading equipment...' :
+                             formData.equipmentId 
                               ? getEquipmentList().find(eq => eq.id === formData.equipmentId)?.name
                               : 'Select equipment'
                             }
@@ -676,14 +809,15 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                             setShowCustomerDropdown(true);
                           }}
                           onFocus={() => setShowCustomerDropdown(true)}
+                          disabled={loadingCustomers}
                           className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                             errors.customerId ? 'border-red-300 bg-red-50' : 'border-gray-300'
                           }`}
-                          placeholder="Search customers..."
+                          placeholder={loadingCustomers ? "Loading customers..." : "Search customers..."}
                         />
                       </div>
                       
-                      {showCustomerDropdown && filteredCustomers.length > 0 && (
+                      {showCustomerDropdown && filteredCustomers.length > 0 && !loadingCustomers && (
                         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                           {filteredCustomers.map(customer => (
                             <button
@@ -770,14 +904,15 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                       name="assignedTo"
                       value={formData.assignedTo}
                       onChange={handleInputChange}
+                      disabled={loadingUsers}
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm ${
                         errors.assignedTo ? 'border-red-300 bg-red-50' : 'border-gray-300'
                       }`}
                     >
-                      <option value="">Select member</option>
+                      <option value="">{loadingUsers ? 'Loading users...' : 'Select member'}</option>
                       {users.map(user => (
                         <option key={user.id} value={user.id}>
-                          {user.name}
+                          {user.name} ({user.role})
                         </option>
                       ))}
                     </select>
@@ -788,16 +923,17 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
 
                   <div>
                     <label htmlFor="sprintId" className="block text-sm font-medium text-gray-700 mb-2">
-                      Sprint (Optional)
+                      Sprint (Coming Soon)
                     </label>
                     <select
                       id="sprintId"
                       name="sprintId"
                       value={formData.sprintId}
                       onChange={handleInputChange}
+                      disabled={true}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm"
                     >
-                      <option value="">No sprint</option>
+                      <option value="">Sprint feature coming soon</option>
                       {sprints.map(sprint => (
                         <option key={sprint.id} value={sprint.id}>
                           {sprint.name}
