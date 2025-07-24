@@ -474,6 +474,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   };
 
   // Check if we have task lists available
+  alert(JSON.stringify(taskLists));
   if (taskLists.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
