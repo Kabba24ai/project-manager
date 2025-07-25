@@ -334,7 +334,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       const taskData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
-        priority: formData.priority.toLowerCase(), // Convert to lowercase for Laravel enum
+     const targetTaskListId = preSelectedTaskListId || parseInt(formData.taskListId);
         task_type: formData.taskType, // Keep as is (general, equipmentId, etc.)
         assigned_to: parseInt(formData.assignedTo), // Convert to integer
         start_date: formData.startDate || null,
