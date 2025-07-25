@@ -51,7 +51,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
     title: '',
     description: '',
     priority: 'Medium',
-    assignedTo: '',
+    taskListId: preSelectedTaskListId || (taskLists?.[0]?.id) || '',
     dueDate: '',
     sprintId: '',
     taskListId: preSelectedTaskListId?.toString() || '', // Pre-select if provided
@@ -74,8 +74,28 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   React.useEffect(() => {
     const loadUsers = async () => {
       try {
+        console.log('🔄 AddTaskForm: Loading data...');
+        console.log('📋 AddTaskForm: Available task lists:', taskLists);
+        console.log('🎯 AddTaskForm: Pre-selected task list ID:', preSelectedTaskListId);
+        console.log('🏗️ AddTaskForm: Selected project:', selectedProject);
+        
         setLoadingUsers(true);
         await fetchUsers();
+        
+        // Auto-select first task list if none is preselected
+        if (!preSelectedTaskListId && taskLists && taskLists.length > 0) {
+          console.log('🎯 AddTaskForm: Auto-selecting first task list:', taskLists[0].id);
+          setFormData(prev => ({
+            ...prev,
+            taskListId: taskLists[0].id.toString()
+          }));
+        } else if (preSelectedTaskListId) {
+          console.log('🎯 AddTaskForm: Using pre-selected task list:', preSelectedTaskListId);
+          setFormData(prev => ({
+            ...prev,
+            taskListId: preSelectedTaskListId.toString()
+          }));
+        }
         setUsers(apiUsers);
       } catch (error) {
         console.error('Failed to load users:', error);
@@ -87,7 +107,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
     };
 
     loadUsers();
-  }, [fetchUsers]);
+  }, [fetchUsers, preSelectedTaskListId, taskLists]);
 
   // Update users when API data changes
   React.useEffect(() => {
@@ -292,8 +312,12 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       newErrors.assignedTo = 'Please assign the task to a team member';
     }
 
-    if (!formData.taskListId) {
+    if (!formData.taskListId || formData.taskListId === '') {
       newErrors.taskListId = 'Please select a task list';
+      console.error('❌ AddTaskForm: Task list validation failed');
+      console.error('📋 AddTaskForm: Current taskListId:', formData.taskListId);
+      console.error('📋 AddTaskForm: Available task lists:', taskLists);
+      console.error('🎯 AddTaskForm: Pre-selected task list ID:', preSelectedTaskListId);
     }
     
     setErrors(newErrors);
