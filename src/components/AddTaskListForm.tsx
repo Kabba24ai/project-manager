@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Save, List } from 'lucide-react';
 import { ViewType, TaskList } from '../types';
+import apiService from '../services/api';
 
 interface AddTaskListFormProps {
   onViewChange: (view: ViewType, data?: any) => void;
@@ -70,29 +71,57 @@ const AddTaskListForm: React.FC<AddTaskListFormProps> = ({
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('🚀 AddTaskListForm: Starting task list creation...');
+      console.log('📋 AddTaskListForm: Form data:', formData);
+      console.log('🏗️ AddTaskListForm: Selected project:', selectedProject);
       
-      // Create the new task list
-      const newTaskList: TaskList = {
-        id: Date.now(), // In real app, this would come from the API
+      if (!selectedProject?.id) {
+        throw new Error('No project selected');
+      }
+      
+      // Prepare task list data for API
+      const taskListData = {
         name: formData.name.trim(),
-        description: formData.description.trim(),
-        color: formData.color,
-        order: Date.now(), // Simple ordering by creation time
-        projectId: selectedProject?.id || 1,
-        tasks: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        description: formData.description.trim() || null,
+        color: formData.color
       };
       
-      // Add to global state
+      console.log('📤 AddTaskListForm: Sending to API:', taskListData);
+      
+      // Call Laravel API to create task list
+      const response = await apiService.createTaskList(selectedProject.id, taskListData);
+      
+      console.log('✅ AddTaskListForm: Task list created successfully:', response);
+      
+      // Convert API response to TaskList format
+      const newTaskList: TaskList = {
+        id: response.data.task_list.id,
+        name: response.data.task_list.name,
+        description: response.data.task_list.description,
+        color: response.data.task_list.color,
+        order: response.data.task_list.order,
+        projectId: response.data.task_list.project_id,
+        tasks: [],
+        createdAt: response.data.task_list.created_at,
+        updatedAt: response.data.task_list.updated_at
+      };
+      
+      // Update global state
       onTaskListCreated(newTaskList);
       
       // Success - redirect back to project view
       onViewChange('project-detail', selectedProject);
     } catch (error) {
-      console.error('Error creating task list:', error);
+      console.error('❌ AddTaskListForm: Error creating task list:', error);
+      
+      // Show user-friendly error message
+      if (error.message?.includes('Backend unavailable')) {
+        alert('Backend server is not running. Please start Laravel backend with "php artisan serve"');
+      } else if (error.message?.includes('validation')) {
+        alert('Validation error: Please check your input and try again.');
+      } else {
+        alert(`Failed to create task list: ${error.message}`);
+      }
     } finally {
       setLoading(false);
     }

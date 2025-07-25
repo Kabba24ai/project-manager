@@ -17,6 +17,12 @@ class StoreController extends BaseController
     public function __invoke(StoreTaskListRequest $request, Project $project): JsonResponse
     {
         $this->authorize('update', $project);
+        
+        \Log::info('Task list creation request received', [
+            'project_id' => $project->id,
+            'request_data' => $request->all(),
+            'user_id' => $request->user()->id
+        ]);
 
         // Auto-assign order if not provided
         $order = $request->order ?? ($project->taskLists()->max('order') + 1);
@@ -27,6 +33,12 @@ class StoreController extends BaseController
         ]);
 
         $taskList->load(['tasks']);
+        
+        \Log::info('Task list created successfully', [
+            'task_list_id' => $taskList->id,
+            'task_list_name' => $taskList->name,
+            'project_id' => $project->id
+        ]);
 
         return response()->json([
             'task_list' => new TaskListResource($taskList),

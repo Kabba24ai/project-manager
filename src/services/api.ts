@@ -670,6 +670,11 @@ class ApiService {
   }
 
   async createTaskList(projectId: number, taskListData: any) {
+    console.log('🔄 API: Creating task list for project:', projectId);
+    console.log('📝 API: Task list data:', taskListData);
+    console.log('🔗 API: Request URL:', `${API_BASE_URL}/projects/${projectId}/task-lists`);
+    console.log('🔑 API: Auth token present:', !!this.token);
+    
     if (this.useMockData) {
       console.log('Using mock data for task list creation');
       // Simulate successful task list creation
@@ -695,11 +700,22 @@ class ApiService {
     }
     
     try {
-      return this.request<{ task_list: any }>(`/projects/${projectId}/task-lists`, {
+      const response = await this.request<{ task_list: any }>(`/projects/${projectId}/task-lists`, {
         method: 'POST',
         body: JSON.stringify(taskListData),
       });
+      
+      console.log('✅ API: Task list creation successful:', response);
+      return response;
     } catch (error) {
+      console.error('❌ API: Task list creation failed:', error);
+      console.error('❌ API: Error details:', {
+        message: error.message,
+        projectId,
+        taskListData,
+        apiUrl: `${API_BASE_URL}/projects/${projectId}/task-lists`
+      });
+      
       console.log('Falling back to mock data for task list creation');
       this.useMockData = true;
       // Return mock success response
