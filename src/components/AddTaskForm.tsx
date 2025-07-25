@@ -7,11 +7,13 @@ import apiService from '../services/api';
 interface AddTaskFormProps {
   onViewChange: (view: ViewType, data?: any) => void;
   selectedProject?: any;
+ preSelectedTaskListId?: number;
   onTaskCreated?: (task: Task) => void;
 }
 
 const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject, onTaskCreated }) => {
   // API hooks
+ preSelectedTaskListId,
   const { users: apiUsers, loading: usersLoading, fetchUsers } = useUsers();
 
   // Mock project settings - this would come from the selected project
