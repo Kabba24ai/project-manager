@@ -40,6 +40,17 @@ class StoreController extends BaseController
             'project_id' => $project->id
         ]);
 
+        // Log the response structure for debugging
+        $responseData = [
+            'task_list' => new TaskListResource($taskList),
+            'message' => 'Task list created successfully',
+        ];
+        
+        \Log::info('Task list response data', [
+            'response_structure' => array_keys($responseData),
+            'task_list_data' => $responseData['task_list']->toArray(request())
+        ]);
+
         return response()->json([
             'task_list' => new TaskListResource($taskList),
             'message' => 'Task list created successfully',

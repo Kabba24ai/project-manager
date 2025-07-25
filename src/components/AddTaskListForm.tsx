@@ -93,18 +93,27 @@ const AddTaskListForm: React.FC<AddTaskListFormProps> = ({
       
       console.log('✅ AddTaskListForm: Task list created successfully:', response);
       
-      // Convert API response to TaskList format
+      // Convert API response to TaskList format - handle different response structures
+      const taskListData = response.data?.task_list || response.task_list || response.data || response;
+      
+      if (!taskListData || !taskListData.id) {
+        console.error('❌ AddTaskListForm: Invalid response structure:', response);
+        throw new Error('Invalid response from server');
+      }
+      
       const newTaskList: TaskList = {
-        id: response.data.task_list.id,
-        name: response.data.task_list.name,
-        description: response.data.task_list.description,
-        color: response.data.task_list.color,
-        order: response.data.task_list.order,
-        projectId: response.data.task_list.project_id,
+        id: taskListData.id,
+        name: taskListData.name,
+        description: taskListData.description,
+        color: taskListData.color,
+        order: taskListData.order,
+        projectId: taskListData.project_id,
         tasks: [],
-        createdAt: response.data.task_list.created_at,
-        updatedAt: response.data.task_list.updated_at
+        createdAt: taskListData.created_at,
+        updatedAt: taskListData.updated_at
       };
+      
+      console.log('📋 AddTaskListForm: Converted task list:', newTaskList);
       
       // Update global state
       onTaskListCreated(newTaskList);

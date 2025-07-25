@@ -706,6 +706,12 @@ class ApiService {
       });
       
       console.log('✅ API: Task list creation successful:', response);
+      console.log('📋 API: Response structure check:', {
+        hasData: !!response.data,
+        hasTaskList: !!response.data?.task_list,
+        responseKeys: Object.keys(response),
+        dataKeys: response.data ? Object.keys(response.data) : 'no data'
+      });
       return response;
     } catch (error) {
       console.error('❌ API: Task list creation failed:', error);
