@@ -19,15 +19,40 @@ class StoreController extends Controller
     public function __invoke(StoreTaskRequest $request, TaskList $taskList): JsonResponse
     {
         $this->authorize('update', $taskList->project);
+        
+        \Log::info('Task creation request received', [
+            'task_list_id' => $taskList->id,
+            'project_id' => $taskList->project_id,
+            'request_data' => $request->all(),
+            'user_id' => $request->user()->id
+        ]);
 
         // Validate that assigned user exists and is part of the project team
         $assignedUser = \App\Models\User::findOrFail($request->assigned_to);
         if (!$taskList->project->team->contains($assignedUser->id) && 
             $taskList->project->project_manager_id !== $assignedUser->id) {
+            \Log::warning('Task creation failed: User not in project team', [
+                'assigned_user_id' => $assignedUser->id,
+                'project_id' => $taskList->project_id,
+                'team_member_ids' => $taskList->project->team->pluck('id')->toArray()
+            ]);
+            
             return response()->json([
                 'message' => 'Assigned user must be a member of the project team',
+                'error' => 'USER_NOT_IN_TEAM',
+                'debug' => [
+                    'assigned_user' => $assignedUser->name,
+                    'project_team' => $taskList->project->team->pluck('name')->toArray()
+                ]
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+        
+        \Log::info('Creating task with validated data', [
+            'task_list_id' => $taskList->id,
+            'assigned_to' => $request->assigned_to,
+            'created_by' => $request->user()->id
+        ]);
+        
         $task = $taskList->tasks()->create([
             'project_id' => $taskList->project_id,
             'task_list_id' => $taskList->id,
@@ -47,6 +72,12 @@ class StoreController extends Controller
 
         // Load relationships for response
         $task->load(['assignedTo', 'creator', 'taskList', 'project']);
+        
+        \Log::info('Task created successfully', [
+            'task_id' => $task->id,
+            'task_title' => $task->title,
+            'assigned_to' => $task->assignedTo->name
+        ]);
 
         return response()->json([
             'task' => new TaskResource($task),

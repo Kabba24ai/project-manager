@@ -302,6 +302,11 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   const handleSubmit = async () => {
     if (!validateForm()) return;
     
+    console.log('🚀 AddTaskForm: Starting task creation...');
+    console.log('📝 AddTaskForm: Form data:', formData);
+    console.log('📋 AddTaskForm: Selected task list ID:', selectedTaskListId);
+    console.log('🏗️ AddTaskForm: Project:', selectedProject);
+    
     setLoading(true);
     
     try {
@@ -314,20 +319,31 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
 
       // Prepare task data for API
       const taskData = {
-        title: formData.title,
-        description: formData.description,
-        equipment_id: formData.equipmentId ? parseInt(formData.equipmentId) : null,
-        customer_id: formData.customerId ? parseInt(formData.customerId) : null,
-        priority: formData.priority.toLowerCase(),
-        task_type: formData.taskType,
-        assigned_to: parseInt(formData.assignedTo),
+      // Validate required data
+      if (!selectedTaskListId) {
+        throw new Error('No task list selected');
+      }
+      
+      if (!selectedProject?.id) {
+        throw new Error('No project selected');
+      }
+      
+      // Prepare task data for API (matching Laravel backend expectations)
+      const taskData = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        priority: formData.priority.toLowerCase(), // Convert to lowercase for Laravel enum
+        task_type: formData.taskType, // Keep as is (general, equipmentId, etc.)
+        assigned_to: parseInt(formData.assignedTo), // Convert to integer
         start_date: formData.startDate || null,
         due_date: formData.dueDate || null,
-        estimated_hours: null,
-        tags: [],
+        estimated_hours: formData.estimatedHours ? parseInt(formData.estimatedHours) : null,
+        tags: formData.tags.filter(tag => tag.trim()), // Remove empty tags
         equipment_id: formData.equipmentId ? parseInt(formData.equipmentId) : null,
-        customer_id: formData.customerId ? parseInt(formData.customerId) : null
+        customer_id: formData.customerId ? parseInt(formData.customerId) : null,
       };
+      
+      console.log('📤 AddTaskForm: Prepared task data for API:', taskData);
 
       console.log('🚀 AddTaskForm: Submitting task data:', taskData);
       console.log('📋 AddTaskForm: Target task list ID:', preSelectedTaskListId);
@@ -336,27 +352,33 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       
       // Create task with or without attachments
       if (formData.attachments.length > 0) {
+        console.log('📎 AddTaskForm: Creating task with attachments...');
         console.log('📎 AddTaskForm: Creating task with attachments');
         // Create FormData for file upload
         const formDataWithFiles = new FormData();
         
-        // Add task data
+        // Add task data to FormData
         Object.keys(taskData).forEach(key => {
           if (taskData[key] !== null && taskData[key] !== undefined) {
             formDataWithFiles.append(key, taskData[key]);
           }
-        });
+              // For arrays like tags, append as JSON string
+              formDataWithFiles.append(key, JSON.stringify(value));
         
         // Add files
         formData.attachments.forEach((file, index) => {
           formDataWithFiles.append(`attachments[${index}]`, file);
         });
         
+        console.log('📤 AddTaskForm: FormData prepared with files');
         response = await apiService.createTaskWithAttachments(selectedTaskList.id, formDataWithFiles);
       } else {
         // Create task without attachments
+        console.log('📝 AddTaskForm: Creating task without attachments...');
         response = await apiService.createTask(selectedTaskList.id, taskData);
       }
+      
+      console.log('✅ AddTaskForm: Task creation response:', response);
       
       console.log('✅ Task created successfully:', response);
       
@@ -388,15 +410,33 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
           estimatedHours: createdTask.estimated_hours || 0
         };
         
+        console.log('🎯 AddTaskForm: Converted task for frontend:', newTask);
         onTaskCreated(newTask);
       }
+        console.log('🔄 AddTaskForm: Redirecting to project detail...');
       console.log('✅ AddTaskForm: Task created successfully:', response);
       
-      // Success - redirect back to project view
+        console.error('❌ AddTaskForm: Invalid response structure:', response);
+        throw new Error('Invalid response from server - no task data received');
       onViewChange(selectedProject ? 'project-detail' : 'dashboard');
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error('❌ AddTaskForm: Task creation failed:', error);
+      console.error('❌ AddTaskForm: Error details:', {
+        message: error.message,
+        stack: error.stack,
+        selectedTaskListId,
+        selectedProject: selectedProject?.id,
+        formData
+      });
       
+      // Show specific error message
+      const errorMessage = error.message?.includes('Backend unavailable') 
+        ? 'Backend server is not available. Please check if Laravel is running.'
+        : error.message?.includes('validation')
+        ? 'Please check your form data and try again.'
+        : error.message || 'Failed to create task. Please try again.';
+        
+      setErrors({ general: errorMessage });
       // Show user-friendly error message
       if (error.message?.includes('Assigned user must be a member')) {
         alert('Error: The assigned user must be a member of the project team.');
