@@ -358,8 +358,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
         
         // Add task data to FormData
         Object.keys(taskData).forEach(key => {
-          if (taskData[key] !== null && taskData[key] !== undefined) {
-            const value = taskData[key];
+          const value = taskData[key];
+          if (value !== null && value !== undefined) {
             if (Array.isArray(value)) {
               // For arrays like tags, append as JSON string
               formDataWithFiles.append(key, JSON.stringify(value));
