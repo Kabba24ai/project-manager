@@ -7,7 +7,7 @@ import apiService from '../services/api';
 interface AddTaskFormProps {
   onViewChange: (view: ViewType, data?: any) => void;
   selectedProject?: any;
-  preSelectedTaskListId?: number;
+  preSelectedTaskListId?: number | null;
   onTaskCreated?: (task: Task) => void;
 }
 

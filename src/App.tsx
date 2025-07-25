@@ -87,7 +87,7 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
           <AddTaskForm 
             onViewChange={handleViewChange} 
             selectedProject={navigationData?.project || selectedProject}
-            preSelectedTaskListId={navigationData?.taskListId}
+            preSelectedTaskListId={navigationData?.taskListId || (navigationData?.project?.task_lists?.[0]?.id) || (selectedProject?.task_lists?.[0]?.id)}
             taskLists={navigationData?.taskLists || []}
             onTaskCreated={handleTaskCreated}
           />
