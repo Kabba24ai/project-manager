@@ -80,7 +80,8 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
       case 'add-task':
         console.log('🎯 App: Rendering add-task view');
         console.log('📦 Navigation data received:', navigationData);
-        console.log('📋 Task lists from navigation:', navigationData?.taskLists);
+        console.log('🎯 Pre-selected task list ID:', navigationData?.preSelectedTaskListId || navigationData?.taskListId);
+        console.log('📝 Selected task list name:', navigationData?.taskListName);
         console.log('🏗️ Selected project:', navigationData?.project || selectedProject);
         
         // Get task lists from project data
@@ -97,7 +98,8 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
           <AddTaskForm 
             onViewChange={handleViewChange} 
             selectedProject={navigationData?.project || selectedProject}
-            preSelectedTaskListId={navigationData?.taskListId || projectTaskLists[0]?.id}
+            preSelectedTaskListId={navigationData?.preSelectedTaskListId || navigationData?.taskListId}
+            selectedTaskListName={navigationData?.taskListName}
             taskLists={projectTaskLists}
             onTaskCreated={handleTaskCreated}
           />
