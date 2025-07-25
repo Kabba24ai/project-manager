@@ -23,12 +23,7 @@ use App\Http\Controllers\TaskLists\UpdateController as TaskListUpdateController;
 use App\Http\Controllers\TaskLists\DeleteController as TaskListDeleteController;
 
 // Domain: Tasks
-use App\Http\Controllers\Tasks\IndexController as TaskIndexController;
-use App\Http\Controllers\Tasks\StoreController as TaskStoreController;
-use App\Http\Controllers\Tasks\ShowController as TaskShowController;
-use App\Http\Controllers\Tasks\UpdateController as TaskUpdateController;
-use App\Http\Controllers\Tasks\DeleteController as TaskDeleteController;
-use App\Http\Controllers\Tasks\MoveController as TaskMoveController;
+use App\Http\Controllers\Api\TaskController;
 
 // Domain: Comments
 use App\Http\Controllers\Comments\IndexController as CommentIndexController;
@@ -108,16 +103,16 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Tasks Domain
     Route::prefix('task-lists/{taskList}/tasks')->group(function () {
-        Route::get('/', TaskIndexController::class);
-        Route::post('/', TaskStoreController::class);
-        Route::post('/with-attachments', TaskStoreController::class . '@storeWithAttachments');
+        Route::get('/', [TaskController::class, 'index']);
+        Route::post('/', [TaskController::class, 'store']);
+        Route::post('/with-attachments', [TaskController::class, 'storeWithAttachments']);
     });
     
     Route::prefix('tasks')->group(function () {
-        Route::get('/{task}', TaskShowController::class);
-        Route::put('/{task}', TaskUpdateController::class);
-        Route::delete('/{task}', TaskDeleteController::class);
-        Route::post('/{task}/move', TaskMoveController::class);
+        Route::get('/{task}', [TaskController::class, 'show']);
+        Route::put('/{task}', [TaskController::class, 'update']);
+        Route::delete('/{task}', [TaskController::class, 'destroy']);
+        Route::post('/{task}/move', [TaskController::class, 'moveToList']);
     });
     
     // Comments Domain

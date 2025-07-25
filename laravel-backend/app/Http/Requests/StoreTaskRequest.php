@@ -76,8 +76,7 @@ class StoreTaskRequest extends FormRequest
                 })
             ]);
         }
-    }
-}
+
         // Convert string IDs to integers
         if ($this->has('assigned_to')) {
             $this->merge(['assigned_to' => (int) $this->assigned_to]);
@@ -90,3 +89,5 @@ class StoreTaskRequest extends FormRequest
         if ($this->has('customer_id') && $this->customer_id) {
             $this->merge(['customer_id' => (int) $this->customer_id]);
         }
+    }
+}
