@@ -314,7 +314,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       // Get the selected task list
       const selectedTaskList = taskLists.find(list => list.id.toString() === formData.taskListId.toString());
       
-      if (!selectedTaskList) {
+      console.log('🎯 AddTaskForm: Pre-selected task list ID:', preSelectedTaskListId || 'None');
         throw new Error('Selected task list not found');
       }
 
