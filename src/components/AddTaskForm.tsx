@@ -373,7 +373,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
         throw new Error('No project selected');
       }
       
-      // Prepare task data for API (matching Laravel backend expectations)
+      // Always use the regular createTask endpoint and handle attachments separately
       const taskData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -393,36 +393,55 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       console.log('🚀 AddTaskForm: Submitting task data:', taskData);
       console.log('📋 AddTaskForm: Target task list ID:', preSelectedTaskListId);
       console.log('📎 AddTaskForm: Attachments count:', formData.attachments.length);
-      let response;
       
-      // Create task with or without attachments
-      if (formData.attachments.length > 0) {
-  console.log('📎 AddTaskForm: Creating task with attachments...');
-  const formDataWithFiles = new FormData();
-  
-  // Append all task data as a single JSON string
-  formDataWithFiles.append('task_data', JSON.stringify(taskData));
-  
-  // Add files
-  formData.attachments.forEach((file, index) => {
-    formDataWithFiles.append(`attachments[${index}]`, file);
-  });
-  
-  console.log('📤 AddTaskForm: FormData prepared with files');
-  response = await apiService.createTaskWithAttachments(selectedTaskList.id, formDataWithFiles);
-} else {
-        // Create task without attachments
-        console.log('📝 AddTaskForm: Creating task without attachments...');
-        console.log('📝 AddTaskForm: Creating task without attachments');
-        response = await apiService.createTask(selectedTaskList.id, taskData);
-      }
+      // Create the task first
+      const response = await apiService.createTask(selectedTaskList.id, taskData);
       
       console.log('✅ AddTaskForm: Task creation response:', response);
       
       console.log('✅ Task created successfully:', response);
       
-      // Get the created task from response
-      const createdTask = response.data?.task;
+      // Extract task from response
+      let createdTask;
+      if (response.data?.task) {
+        createdTask = response.data.task;
+      } else if (response.task) {
+        createdTask = response.task;
+      } else if (response.data) {
+        createdTask = response.data;
+      } else {
+        createdTask = response;
+      }
+      
+      if (!createdTask || !createdTask.id) {
+        console.error('❌ AddTaskForm: Invalid task response structure:', response);
+        throw new Error('Invalid response from server');
+      }
+      
+      // Handle file attachments if any
+      if (formData.attachments && formData.attachments.length > 0) {
+        console.log('📎 AddTaskForm: Uploading attachments for task:', createdTask.id);
+        
+        try {
+          const attachmentFormData = new FormData();
+          
+          // Add attachable info
+          attachmentFormData.append('attachable_type', 'App\\Models\\Task');
+          attachmentFormData.append('attachable_id', createdTask.id.toString());
+          
+          // Add files
+          formData.attachments.forEach((file, index) => {
+            attachmentFormData.append(`files[${index}]`, file);
+          });
+          
+          const attachmentResponse = await apiService.uploadAttachment(attachmentFormData);
+          console.log('✅ AddTaskForm: Attachments uploaded successfully:', attachmentResponse);
+        } catch (attachmentError) {
+          console.error('❌ AddTaskForm: Attachment upload failed:', attachmentError);
+          // Don't fail the entire task creation if attachments fail
+          alert('Task created successfully, but some attachments failed to upload. You can add them later.');
+        }
+      }
       
       if (response?.data?.task) {
     // Convert API response to frontend Task format
