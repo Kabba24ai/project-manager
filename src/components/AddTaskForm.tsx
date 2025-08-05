@@ -10,6 +10,11 @@ interface AddTaskFormProps {
   preSelectedTaskListId?: number | null;
   onTaskCreated?: (task: Task) => void;
 }
+  authContext?: {
+    user: any;
+    isAuthenticated: boolean;
+    logout: () => void;
+  };
 
 const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject, preSelectedTaskListId, onTaskCreated }) => {
   // API hooks
@@ -1283,59 +1288,39 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                 <div>
                   <h3 className="text-md font-medium text-gray-900 mb-4">Comments & Activity</h3>
                   
-                  <div className="space-y-4">
-                    {/* Comments Loading State */}
-                    {loadingComments && (
-                      <div className="text-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                        <p className="text-sm text-gray-500">Loading comments...</p>
-                      </div>
-                    )}
-
-                    {/* Comments List */}
-                    {!loadingComments && (
-                      <div className="space-y-3">
-                        {comments.length > 0 ? (
-                          comments.map((comment) => (
-                            <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
-                              <div className="flex items-start space-x-3">
-                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <span className="text-xs font-medium text-white">
-                                    {comment.user?.avatar || comment.user?.name?.charAt(0) || 'U'}
-                                  </span>
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-2 mb-1">
-                                    <span className="font-medium text-gray-900">
-                                      {comment.user?.name || 'Unknown User'}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      {comment.user?.role || 'user'}
-                                    </span>
-                                    <span className="text-xs text-gray-400">•</span>
-                                    <span className="text-xs text-gray-500">
-                                      {comment.formatted_date || new Date(comment.created_at).toLocaleString()}
-                                    </span>
-                                  </div>
-                                  <p className="text-gray-700 text-sm">{comment.content}</p>
-                                  {(comment.attachments_count > 0 || comment.has_attachments) && (
-                                    <div className="mt-2 text-xs text-gray-500">
-                                      📎 {comment.attachments_count || 1} attachment(s)
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-center py-6 text-gray-500">
-                            {createdTask ? (
-                              <p>No comments yet. Be the first to add one!</p>
-                            ) : (
-                              <p>Create the task first to start adding comments.</p>
-                            )}
+                  <div className="space-y-4 mb-6">
+                    {comments.length > 0 ? (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="flex space-x-3">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-white">
+                              {comment.user?.avatar || comment.user?.name?.substring(0, 2).toUpperCase() || 'U'}
+                            </span>
                           </div>
-                        )}
+                          <div className="flex-1">
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {comment.user?.name || 'Unknown User'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {comment.formatted_date || new Date(comment.created_at).toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700">{comment.content}</p>
+                              {comment.attachments_count > 0 && (
+                                <div className="mt-2 text-xs text-blue-600">
+                                  📎 {comment.attachments_count} attachment(s)
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                        <p>No comments yet. Add the first comment below.</p>
                       </div>
                     )}
                   </div>
