@@ -596,7 +596,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
             </div>
           </div>
         </div>
-
+            
         {/* No Task Lists Message */}
         <div className="max-w-2xl mx-auto px-6 py-16">
           <div className="text-center bg-white rounded-lg border border-gray-200 p-12">
