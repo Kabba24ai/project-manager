@@ -117,13 +117,13 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Comments Domain
     Route::prefix('tasks/{task}/comments')->group(function () {
-        Route::get('/', CommentIndexController::class);
-        Route::post('/', CommentStoreController::class);
+        Route::get('/', [\App\Http\Controllers\Api\CommentController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\CommentController::class, 'store']);
     });
     
     Route::prefix('comments')->group(function () {
-        Route::put('/{comment}', CommentUpdateController::class);
-        Route::delete('/{comment}', CommentDeleteController::class);
+        Route::put('/{comment}', [\App\Http\Controllers\Api\CommentController::class, 'update']);
+        Route::delete('/{comment}', [\App\Http\Controllers\Api\CommentController::class, 'destroy']);
     });
     
     // Attachments Domain
