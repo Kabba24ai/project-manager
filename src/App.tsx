@@ -19,14 +19,12 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [navigationData, setNavigationData] = useState<any>(null);
   
   // Global state for task lists - this would normally be in a state management system
   const [globalTaskLists, setGlobalTaskLists] = useState<TaskList[]>([]);
 
   const handleViewChange = (view: ViewType, data?: any) => {
     setCurrentView(view);
-    setNavigationData(data);
     
     if (view === 'project-detail' && data) {
       // Update the project with current task lists
@@ -78,29 +76,13 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
         return <AddProjectForm onViewChange={handleViewChange} />;
       
       case 'add-task':
-        console.log('🎯 App: Rendering add-task view');
-        console.log('📦 Navigation data received:', navigationData);
-        console.log('🎯 Pre-selected task list ID:', navigationData?.preSelectedTaskListId || navigationData?.taskListId);
-        console.log('📝 Selected task list name:', navigationData?.taskListName);
-        console.log('🏗️ Selected project:', navigationData?.project || selectedProject);
-        
-        // Get task lists from project data
-        const projectTaskLists = navigationData?.project?.task_lists || 
-                                navigationData?.project?.taskLists || 
-                                selectedProject?.task_lists || 
-                                selectedProject?.taskLists || 
-                                [];
-        
-        console.log('📋 App: Resolved task lists for AddTaskForm:', projectTaskLists);
-        console.log('🎯 App: First task list ID:', projectTaskLists[0]?.id);
-        
         return (
           <AddTaskForm 
             onViewChange={handleViewChange} 
-            selectedProject={navigationData?.project || selectedProject}
-            preSelectedTaskListId={navigationData?.preSelectedTaskListId || navigationData?.taskListId}
-            selectedTaskListName={navigationData?.taskListName}
-            taskLists={projectTaskLists}
+            selectedProject={{
+              ...selectedProject,
+              taskLists: globalTaskLists.filter(list => list.projectId === selectedProject?.id)
+            }}
             onTaskCreated={handleTaskCreated}
           />
         );
