@@ -1204,38 +1204,68 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                             <X className="w-4 h-4" />
                           </button>
                         </div>
-                      ))}
-                    </div>
-                    
-                    {/* Summary */}
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center space-x-2 text-sm text-blue-700">
-                        <Upload className="w-4 h-4" />
-                        <span>
-                          {formData.attachments.length} file{formData.attachments.length !== 1 ? 's' : ''} ready to upload
+                    {comments.length > 0 ? (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="flex space-x-3">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-white">
+                              {comment.user?.avatar || comment.user?.name?.substring(0, 2).toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {comment.user?.name || 'Unknown User'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {comment.formatted_date || new Date(comment.created_at).toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700">{comment.content}</p>
+                              {comment.attachments_count > 0 && (
+                                <div className="mt-2 text-xs text-blue-600">
+                                  📎 {comment.attachments_count} attachment(s)
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                        <p>No comments yet. Add the first comment below.</p>
+                      </div>
+                        <span className="text-xs font-medium text-white">
+                          {authContext?.user?.avatar || authContext?.user?.name?.substring(0, 2).toUpperCase() || 'U'}
                         </span>
-                      </div>
-                      <div className="text-sm text-blue-600">
-                        Total: {(formData.attachments.reduce((total, file) => total + file.size, 0) / 1024 / 1024).toFixed(2)} MB
-                      </div>
-                    </div>
                   </div>
                 )}
                 
-                {/* Drag & Drop Zone */}
-                <div 
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          placeholder="Add a comment..."
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-colors"
                   onDrop={(e) => {
                     e.preventDefault();
-                    const files = Array.from(e.dataTransfer.files);
-                    handleFileUpload({ target: { files } });
-                  }}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDragEnter={(e) => e.preventDefault()}
-                >
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Drop files here</span> or click Upload Files above
+                        <div className="flex justify-end mt-3">
+                          {commentLoading ? (
+                            <div className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                              <span className="text-sm text-gray-600">Adding comment...</span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleAddComment}
+                              disabled={!newComment.trim()}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                              <span>Add Comment</span>
+                            </button>
+                          )}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
                     Photos, Videos, and PDFs accepted
