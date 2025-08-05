@@ -1,6 +1,6 @@
 // API service for Laravel backend integration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
-//const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://projectmanager.kabba.ai/api';
+//const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://projectmanager.kabba.ai/api';
 interface ApiResponse<T> {
   data?: T;
   message?: string;
@@ -65,236 +65,7 @@ class ApiService {
     };
   }
 
-  private getMockProjectDetail(id: number) {
-    return {
-      data: {
-        project: {
-          id: id,
-          name: "E-commerce Platform Redesign",
-          description: "Complete overhaul of the existing e-commerce platform with modern UI/UX principles and improved performance",
-          status: "active",
-          priority: "high",
-          start_date: "2024-01-15",
-          due_date: "2024-04-30",
-          budget: "75000.00",
-          client: "TechCorp Solutions",
-          progress_percentage: 65,
-          tasks_count: 12,
-          completed_tasks: 8,
-          created_at: "2024-01-15T10:30:00.000000Z",
-          updated_at: "2024-01-20T14:45:00.000000Z",
-          objectives: [
-            "Improve user experience and conversion rates by 25%",
-            "Implement modern responsive design for all devices",
-            "Optimize performance and reduce loading times by 40%"
-          ],
-          deliverables: [
-            "New responsive website design and implementation",
-            "Mobile-optimized user interface with PWA features",
-            "Performance optimization report and implementation"
-          ],
-          tags: ["web", "ecommerce", "redesign", "ui/ux", "performance"],
-          settings: {
-            taskTypes: {
-              general: true,
-              equipmentId: false,
-              customerName: true
-            },
-            allowFileUploads: true,
-            requireApproval: true,
-            enableTimeTracking: true,
-            publicProject: false
-          },
-          team: [
-            { id: 1, name: "Sarah Johnson", email: "sarah.johnson@taskmaster.com", role: "manager", avatar: "SJ" },
-            { id: 2, name: "Mike Chen", email: "mike.chen@taskmaster.com", role: "developer", avatar: "MC" },
-            { id: 3, name: "Emily Rodriguez", email: "emily.rodriguez@taskmaster.com", role: "designer", avatar: "ER" },
-            { id: 4, name: "David Kim", email: "david.kim@taskmaster.com", role: "developer", avatar: "DK" }
-          ],
-          project_manager: {
-            id: 1,
-            name: "Sarah Johnson",
-            email: "sarah.johnson@taskmaster.com",
-            role: "manager",
-            avatar: "SJ"
-          },
-          task_lists: [
-            {
-              id: 1,
-              name: "To Do",
-              description: "Tasks that are planned but not yet started",
-              color: "bg-gray-100",
-              order: 1,
-              tasks_count: 3,
-              created_at: "2024-01-15T10:30:00.000000Z",
-              updated_at: "2024-01-15T10:30:00.000000Z",
-              tasks: [
-                {
-                  id: 1,
-                  title: "Setup project structure",
-                  description: "Initialize the project with proper folder structure and dependencies",
-                  priority: "high",
-                  task_type: "general",
-                  start_date: "2024-02-01",
-                  due_date: "2024-02-15",
-                  estimated_hours: 16,
-                  actual_hours: null,
-                  tags: ["setup", "structure", "dependencies"],
-                  feedback: null,
-                  attachments_count: 0,
-                  comments_count: 1,
-                  created_at: "2024-01-15T10:30:00.000000Z",
-                  updated_at: "2024-01-15T10:30:00.000000Z",
-                  assigned_to: {
-                    id: 2,
-                    name: "Mike Chen",
-                    email: "mike.chen@taskmaster.com",
-                    role: "developer",
-                    avatar: "MC"
-                  }
-                },
-                {
-                  id: 2,
-                  title: "Design system documentation",
-                  description: "Create comprehensive design system documentation for the project",
-                  priority: "medium",
-                  task_type: "design",
-                  start_date: "2024-02-05",
-                  due_date: "2024-02-20",
-                  estimated_hours: 24,
-                  actual_hours: null,
-                  tags: ["design", "documentation", "system"],
-                  feedback: null,
-                  attachments_count: 2,
-                  comments_count: 0,
-                  created_at: "2024-01-16T09:15:00.000000Z",
-                  updated_at: "2024-01-16T09:15:00.000000Z",
-                  assigned_to: {
-                    id: 3,
-                    name: "Emily Rodriguez",
-                    email: "emily.rodriguez@taskmaster.com",
-                    role: "designer",
-                    avatar: "ER"
-                  }
-                }
-              ]
-            },
-            {
-              id: 2,
-              name: "In Progress",
-              description: "Tasks currently being worked on",
-              color: "bg-blue-100",
-              order: 2,
-              tasks_count: 2,
-              created_at: "2024-01-15T10:30:00.000000Z",
-              updated_at: "2024-01-15T10:30:00.000000Z",
-              tasks: [
-                {
-                  id: 3,
-                  title: "Implement user authentication",
-                  description: "Add login and registration functionality with OAuth integration",
-                  priority: "urgent",
-                  task_type: "feature",
-                  start_date: "2024-01-20",
-                  due_date: "2024-02-10",
-                  estimated_hours: 32,
-                  actual_hours: 18,
-                  tags: ["authentication", "security", "oauth"],
-                  feedback: null,
-                  attachments_count: 1,
-                  comments_count: 4,
-                  created_at: "2024-01-17T11:20:00.000000Z",
-                  updated_at: "2024-01-20T16:30:00.000000Z",
-                  assigned_to: {
-                    id: 2,
-                    name: "Mike Chen",
-                    email: "mike.chen@taskmaster.com",
-                    role: "developer",
-                    avatar: "MC"
-                  }
-                }
-              ]
-            },
-            {
-              id: 3,
-              name: "Review",
-              description: "Tasks completed and awaiting review",
-              color: "bg-yellow-100",
-              order: 3,
-              tasks_count: 1,
-              created_at: "2024-01-15T10:30:00.000000Z",
-              updated_at: "2024-01-15T10:30:00.000000Z",
-              tasks: [
-                {
-                  id: 4,
-                  title: "Homepage wireframes",
-                  description: "Create wireframes for the new homepage layout",
-                  priority: "high",
-                  task_type: "design",
-                  start_date: "2024-01-18",
-                  due_date: "2024-01-30",
-                  estimated_hours: 16,
-                  actual_hours: 14,
-                  tags: ["wireframes", "homepage", "design"],
-                  feedback: "Great progress! Please add mobile breakpoint wireframes.",
-                  attachments_count: 3,
-                  comments_count: 2,
-                  created_at: "2024-01-18T14:10:00.000000Z",
-                  updated_at: "2024-01-25T10:45:00.000000Z",
-                  assigned_to: {
-                    id: 3,
-                    name: "Emily Rodriguez",
-                    email: "emily.rodriguez@taskmaster.com",
-                    role: "designer",
-                    avatar: "ER"
-                  }
-                }
-              ]
-            },
-            {
-              id: 4,
-              name: "Done",
-              description: "Completed and approved tasks",
-              color: "bg-green-100",
-              order: 4,
-              tasks_count: 2,
-              created_at: "2024-01-15T10:30:00.000000Z",
-              updated_at: "2024-01-15T10:30:00.000000Z",
-              tasks: [
-                {
-                  id: 5,
-                  title: "Database schema design",
-                  description: "Design and implement the database schema for the project",
-                  priority: "high",
-                  task_type: "general",
-                  start_date: "2024-01-15",
-                  due_date: "2024-01-25",
-                  estimated_hours: 20,
-                  actual_hours: 18,
-                  tags: ["database", "schema", "design"],
-                  feedback: null,
-                  attachments_count: 1,
-                  comments_count: 3,
-                  created_at: "2024-01-15T10:30:00.000000Z",
-                  updated_at: "2024-01-25T15:20:00.000000Z",
-                  assigned_to: {
-                    id: 4,
-                    name: "David Kim",
-                    email: "david.kim@taskmaster.com",
-                    role: "developer",
-                    avatar: "DK"
-                  }
-                }
-              ]
-            }
-          ],
-          is_overdue: false,
-          days_until_due: 65,
-          can_user_edit: true
-        }
-      }
-    };
-  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -308,10 +79,14 @@ class ApiService {
       ...options.headers,
     };
 
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
-    }
+    // Load token from localStorage if not already in memory
+if (!this.token) {
+  this.token = localStorage.getItem('auth_token') || '';
+}
 
+if (this.token) {
+  headers.Authorization = `Bearer ${this.token}`;
+}
     try {
       const response = await fetch(url, {
         ...options,
@@ -328,6 +103,8 @@ class ApiService {
       }
 
       if (!response.ok) {
+        //alert(response.status);
+        
         // Handle authentication errors specifically
         if (response.status === 401) {
           this.useMockData = true;
@@ -339,6 +116,7 @@ class ApiService {
         if (response.status === 403) {
           throw new Error('Access denied - insufficient permissions');
         }
+          
         throw new Error(data.message || 'API request failed');
       }
 
@@ -361,28 +139,37 @@ class ApiService {
   }
 
   // Authentication
-  async login(email: string, password: string) {
-    try {
-      const response = await this.request<{ user: any; token: string; expires_at?: string }>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      });
+ async login(email: string, password: string) {
+  try {
+    const response = await this.request<{
+      user: any;
+      token: string;
+      expires_at?: string;
+      message?: string;
+    }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (response.data?.token) {
-        this.token = response.data.token;
-        localStorage.setItem('auth_token', this.token);
-        if (response.data.expires_at) {
-          localStorage.setItem('token_expires_at', response.data.expires_at);
-        }
-        this.useMockData = false; // Reset mock data flag on successful login
+    // Corrected: use response.token directly
+    if (response.token) {
+      this.token = response.token;
+      localStorage.setItem('auth_token', this.token);
+
+      if (response.expires_at) {
+        localStorage.setItem('token_expires_at', response.expires_at);
       }
 
-      return response;
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
+      this.useMockData = false; // Reset mock data flag on successful login
     }
+
+    return response;
+  } catch (error) {
+    console.error('Login failed:', error);
+    throw error;
   }
+}
+
 
   async register(userData: { name: string; email: string; password: string; password_confirmation: string; role: string }) {
     try {
@@ -484,10 +271,12 @@ class ApiService {
 
   // Projects
   async getProjects(params?: { status?: string; per_page?: number; page?: number }) {
+    /*
     if (this.useMockData) {
       console.log('Using mock data for projects');
       return this.getMockProjects();
     }
+      */
     
     try {
       const searchParams = new URLSearchParams();
@@ -917,7 +706,7 @@ class ApiService {
       };
     }
   }
-
+/*
   async createTask(taskListId: number, taskData: any) {
     if (this.useMockData) {
       console.log('Using mock data for task creation');
@@ -963,6 +752,7 @@ class ApiService {
       };
     }
   }
+    */
 
   async createTaskWithAttachments(taskListId: number, formData: FormData) {
     if (this.useMockData) {
@@ -1033,31 +823,7 @@ class ApiService {
     console.log('🔗 API: Request URL:', `${API_BASE_URL}/task-lists/${taskListId}/tasks`);
     console.log('🔑 API: Auth token present:', !!this.token);
     
-    if (this.useMockData) {
-      console.log('Using mock data for task creation');
-      const mockTask = {
-        id: Date.now(),
-        ...taskData,
-        task_list_id: taskListId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        attachments_count: 0,
-        comments_count: 0,
-        assigned_to: {
-          id: taskData.assigned_to,
-          name: 'Mock User',
-          email: 'mock@example.com',
-          role: 'developer',
-          avatar: 'MU'
-        }
-      };
-      return {
-        data: {
-          task: mockTask,
-          message: 'Task created successfully (mock data)'
-        }
-      };
-    }
+
     
     try {
       const response = await this.request<{ task: any }>(`/task-lists/${taskListId}/tasks`, {
@@ -1066,7 +832,11 @@ class ApiService {
       });
       
       console.log('✅ API: Task creation successful:', response);
-      return response;
+      //return response;
+      return {
+      data: response,
+      status: 201 // or whatever status code you get
+    };
     } catch (error) {
       console.error('❌ API: Task creation failed:', error);
       console.error('❌ API: Error details:', {
