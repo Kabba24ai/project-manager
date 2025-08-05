@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, TrendingUp, Clock, CheckCircle, AlertTriangle, Users, Calendar, ArrowLeft, X, MoreVertical, Edit, Trash2, Paperclip, MessageSquare, Settings } from 'lucide-react';
 import { ViewType } from '../types';
@@ -107,8 +108,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onViewChange, authContext }) => {
   const [activeTab, setActiveTab] = useState('active');
   
   const filteredProjects = projects.filter(project =>
-    activeTab === 'active' ? project.status === 'active' : project.status === 'completed'
-  );
+  activeTab === 'active' 
+    ? ['active', 'planning'].includes(project.status) 
+    : project.status === 'completed'
+);
 
   // Get task counts by project and status
   const getTaskCounts = (projectId, status) => {
