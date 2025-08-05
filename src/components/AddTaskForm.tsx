@@ -10,13 +10,8 @@ interface AddTaskFormProps {
   preSelectedTaskListId?: number | null;
   onTaskCreated?: (task: Task) => void;
 }
-  authContext?: {
-    user: any;
-    isAuthenticated: boolean;
-    logout: () => void;
-  };
 
-const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject, preSelectedTaskListId, onTaskCreated }) => {
+const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject, preSelectedTaskListId, onTaskCreated, authContext }) => {
   // API hooks
   const { users: apiUsers, loading: usersLoading, fetchUsers } = useUsers();
 
@@ -1330,8 +1325,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                     <div className="flex space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-xs font-medium text-white">
-                          {/* {authContext?.user?.avatar || authContext?.user?.name?.substring(0, 2).toUpperCase() || 'U'} */}
-                          U
+                          {authContext?.user?.avatar || authContext?.user?.name?.substring(0, 2).toUpperCase() || 'U'}
                         </span>
                       </div>
                       <div className="flex-1">

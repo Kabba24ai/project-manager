@@ -84,6 +84,7 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
               taskLists: globalTaskLists.filter(list => list.projectId === selectedProject?.id)
             }}
             onTaskCreated={handleTaskCreated}
+            authContext={authContext}
           />
         );
       
