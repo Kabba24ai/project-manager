@@ -418,6 +418,9 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
         throw new Error('Invalid response from server');
       }
       
+      // Store the created task ID for comments
+      setCreatedTaskId(responseTask.id);
+      
       // Handle file attachments if any
       if (formData.attachments && formData.attachments.length > 0) {
         console.log('📎 AddTaskForm: Uploading attachments for task:', createdTask.id);
@@ -442,6 +445,9 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
           alert('Task created successfully, but some attachments failed to upload. You can add them later.');
         }
       }
+      
+      // Show activity tab to display the created task and allow comments
+      setShowActivityTab(true);
       
       if (response?.data?.task) {
     // Convert API response to frontend Task format
@@ -497,8 +503,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   }
   
   setErrors({ general: errorMessage });
-  alert(errorMessage);
-} finally {
+      // Don't redirect immediately - let user add comments first
+      // onViewChange('project-detail', selectedProject);
   setLoading(false);
 }
   };
