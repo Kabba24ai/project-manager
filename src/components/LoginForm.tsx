@@ -2,8 +2,23 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, AlertCircle } from 'lucide-react';
 import apiService from '../services/api';
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  avatar: string;
+  role: string;
+}
+
+interface LoginResponse {
+  user: User;
+  token: string;
+  expires_at: string;
+  message: string;
+}
+
 interface LoginFormProps {
-  onLoginSuccess: (user: any) => void;
+  onLoginSuccess: (user: User) => void;
   onSwitchToRegister: () => void;
 }
 
@@ -23,7 +38,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
       [name]: value
     }));
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -60,22 +74,25 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
     setErrors({});
     
     try {
-      const response = await apiService.login(formData.email, formData.password);
+      const response = await apiService.login(formData.email, formData.password) as LoginResponse;
       
-      if (response.data?.user) {
-        onLoginSuccess(response.data.user);
+      if (response?.user) {
+        // Store authentication tokens
+        localStorage.setItem('auth_token', response.token);
+        localStorage.setItem('token_expires_at', response.expires_at);
+        
+        // Call success handler
+        onLoginSuccess(response.user);
       } else {
-        setErrors({ general: 'Login failed. Please try again.' });
+        setErrors({ general: 'Login failed. Invalid server response.' });
       }
     } catch (error: any) {
-      // Handle different types of errors
+      console.error('Login error:', error);
+      
       if (error.message?.includes('Failed to fetch') || error.message?.includes('Backend unavailable')) {
-        // Backend connection error - try mock login
-        console.warn('Backend unavailable, attempting mock login');
-        
-        // Check if credentials match demo credentials
+        // Fallback to mock login if backend is down
         if (formData.email === 'admin@taskmaster.com' && formData.password === 'password') {
-          const mockUser = {
+          const mockUser: User = {
             id: 1,
             name: 'Admin User',
             email: 'admin@taskmaster.com',
@@ -83,7 +100,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
             avatar: 'AU'
           };
           
-          // Store mock token
           localStorage.setItem('auth_token', 'mock-token-' + Date.now());
           localStorage.setItem('token_expires_at', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
           
@@ -91,21 +107,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
           return;
         } else {
           setErrors({ 
-            general: 'Backend server is not running. Use demo credentials (admin@taskmaster.com / password) to continue with mock data, or start the Laravel backend with "php artisan serve".' 
+            general: 'Backend unavailable. Use demo credentials or start the backend server.' 
           });
         }
-      } else if (error.message?.includes('credentials') || error.message?.includes('Unauthenticated')) {
-        setErrors({ general: 'Invalid email or password. Please try again.' });
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: 'Login failed. Please check your connection and try again.' });
+        setErrors({ general: 'Login failed. Please try again.' });
       }
-      
     } finally {
       setLoading(false);
     }
   };
 
-  // Demo credentials helper
   const fillDemoCredentials = () => {
     setFormData({
       email: 'admin@taskmaster.com',
@@ -122,13 +136,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
             <span className="text-white font-bold text-xl">TM</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Sign in to your Task Master K account</p>
+          <p className="text-gray-600">Sign in to your Task Master account</p>
         </div>
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* General Error */}
             {errors.general && (
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3">
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
@@ -252,7 +265,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-gray-500 text-sm">
-            © 2024 Task Master K. All rights reserved.
+            © {new Date().getFullYear()} Task Master. All rights reserved.
           </p>
         </div>
       </div>
