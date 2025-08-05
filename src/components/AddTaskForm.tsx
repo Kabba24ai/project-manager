@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Save, Upload, X, Search, ChevronDown, Calendar, User, Flag } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Search, ChevronDown, Calendar, User, Flag, MessageSquare } from 'lucide-react';
 import { ViewType, TaskList, Task } from '../types';
 import { useUsers } from '../hooks/useApi';
 import apiService from '../services/api';
@@ -46,6 +46,13 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   const [customers, setCustomers] = useState([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
 
+  // Comments state
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [showActivityTab, setShowActivityTab] = useState(false);
+  const [createdTaskId, setCreatedTaskId] = useState(null);
+
   const [formData, setFormData] = useState({
     taskType: '',
     title: '',
@@ -60,7 +67,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
     customerSearch: '',
     customerId: '',
     startDate: '',
-    attachments: []
+    attachments: [],
+    assignedTo: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -298,6 +306,27 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
     }));
   };
 
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !createdTaskId) return;
+    
+    setCommentLoading(true);
+    try {
+      const response = await apiService.addComment(createdTaskId, {
+        content: newComment.trim()
+      });
+      
+      if (response.data?.comment) {
+        setComments(prev => [...prev, response.data.comment]);
+        setNewComment('');
+      }
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      alert('Failed to add comment. Please try again.');
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
@@ -418,6 +447,9 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
         throw new Error('Invalid response from server');
       }
       
+      // Store the created task ID for comments
+      setCreatedTaskId(createdTask.id);
+      
       // Handle file attachments if any
       if (formData.attachments && formData.attachments.length > 0) {
         console.log('📎 AddTaskForm: Uploading attachments for task:', createdTask.id);
@@ -442,6 +474,9 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
           alert('Task created successfully, but some attachments failed to upload. You can add them later.');
         }
       }
+      
+      // Show activity tab to display the created task and allow comments
+      setShowActivityTab(true);
       
       if (response?.data?.task) {
     // Convert API response to frontend Task format
@@ -497,7 +532,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   }
   
   setErrors({ general: errorMessage });
-  alert(errorMessage);
+      // Don't redirect immediately - let user add comments first
+      // onViewChange('project-detail', selectedProject);
 } finally {
   setLoading(false);
 }
@@ -596,7 +632,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
             </div>
           </div>
         </div>
-            
+
         {/* No Task Lists Message */}
         <div className="max-w-2xl mx-auto px-6 py-16">
           <div className="text-center bg-white rounded-lg border border-gray-200 p-12">
@@ -1212,8 +1248,108 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
             </div>
           )}
 
+          {/* Activity Tab - Show after task creation */}
+          {showActivityTab && createdTaskId && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium">✓</div>
+                <h2 className="text-lg font-semibold text-gray-900">Task Created Successfully!</h2>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Comments Section */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-4">Comments & Activity</h3>
+                  
+                  <div className="space-y-4 mb-6">
+                    {comments.length > 0 ? (
+                      comments.map((comment) => (
+                        <div key={comment.id} className="flex space-x-3">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-white">
+                              {comment.user?.avatar || comment.user?.name?.substring(0, 2).toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {comment.user?.name || 'Unknown User'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {comment.formatted_date || new Date(comment.created_at).toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700">{comment.content}</p>
+                              {comment.attachments_count > 0 && (
+                                <div className="mt-2 text-xs text-blue-600">
+                                  📎 {comment.attachments_count} attachment(s)
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                        <p>No comments yet. Add the first comment below.</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Add Comment Form */}
+                  <div className="border-t pt-4">
+                    <div className="flex space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium text-white">
+                          {/* {authContext?.user?.avatar || authContext?.user?.name?.substring(0, 2).toUpperCase() || 'U'} */}
+                          U
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <textarea
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          placeholder="Add a comment..."
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-colors"
+                          rows={3}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            // Handle file drops for comment attachments
+                          }}
+                        />
+                        <div className="flex justify-end mt-3">
+                          {commentLoading ? (
+                            <div className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                              <span className="text-sm text-gray-600">Adding comment...</span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleAddComment}
+                              disabled={!newComment.trim()}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                              <span>Add Comment</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Photos, Videos, and PDFs accepted
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Form Actions */}
-          {canShowActions && (
+          {canShowActions && !showActivityTab && (
             <div className="flex items-center justify-end space-x-4">
               <button
                 type="button"
@@ -1239,6 +1375,19 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
                     <span>Create Task</span>
                   </>
                 )}
+              </button>
+            </div>
+          )}
+
+          {/* Final Actions - Show after task creation */}
+          {showActivityTab && (
+            <div className="flex items-center justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => onViewChange(selectedProject ? 'project-detail' : 'dashboard')}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Back to Project
               </button>
             </div>
           )}
