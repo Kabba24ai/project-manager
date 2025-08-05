@@ -50,6 +50,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
   const [showActivityTab, setShowActivityTab] = useState(false);
   const [createdTaskId, setCreatedTaskId] = useState(null);
 
@@ -116,6 +118,26 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
 
     loadUsers();
   }, [fetchUsers]);
+
+  // Load comments when task is created
+  const loadComments = async (taskId) => {
+    if (!taskId) return;
+    
+    setLoadingComments(true);
+    try {
+      console.log('🔄 AddTaskForm: Loading comments for task:', taskId);
+      const response = await apiService.getComments(taskId);
+      console.log('✅ AddTaskForm: Comments loaded:', response);
+      
+      const commentsData = response.data?.comments || response.comments || [];
+      setComments(commentsData);
+    } catch (error) {
+      console.error('❌ AddTaskForm: Failed to load comments:', error);
+      setComments([]); // Reset to empty array on error
+    } finally {
+      setLoadingComments(false);
+    }
+  };
 
   React.useEffect(() => {
     if (preSelectedTaskListId) {
