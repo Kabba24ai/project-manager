@@ -54,7 +54,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
     taskListId: preSelectedTaskListId || (taskLists?.[0]?.id) || '',
     dueDate: '',
     sprintId: '',
-    taskListId: '', // only placeholder initially
+//    taskListId: '', // only placeholder initially
     equipmentCategory: '',
     equipmentId: '',
     customerSearch: '',
@@ -76,7 +76,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       try {
         console.log('🔄 AddTaskForm: Loading data...');
         console.log('📋 AddTaskForm: Available task lists:', taskLists);
-        console.log('🎯 AddTaskForm: Pre-selected task list ID:', preSelectedTaskListId);
+        console.log('🎯 AddTaskForm: Pre-selected task list ID:', taskLists?.[0]?.id);
         console.log('🏗️ AddTaskForm: Selected project:', selectedProject);
         
         setLoadingUsers(true);
@@ -397,32 +397,20 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       
       // Create task with or without attachments
       if (formData.attachments.length > 0) {
-        console.log('📎 AddTaskForm: Creating task with attachments...');
-        console.log('📎 AddTaskForm: Creating task with attachments');
-        // Create FormData for file upload
-        const formDataWithFiles = new FormData();
-        
-        // Add task data to FormData
-        Object.keys(taskData).forEach(key => {
-          const value = taskData[key];
-          if (value !== null && value !== undefined) {
-            if (Array.isArray(value)) {
-              // For arrays like tags, append as JSON string
-              formDataWithFiles.append(key, JSON.stringify(value));
-            } else {
-              formDataWithFiles.append(key, value);
-            }
-          }
-        });
-        
-        // Add files
-        formData.attachments.forEach((file, index) => {
-          formDataWithFiles.append(`attachments[${index}]`, file);
-        });
-        
-        console.log('📤 AddTaskForm: FormData prepared with files');
-        response = await apiService.createTaskWithAttachments(selectedTaskList.id, formDataWithFiles);
-      } else {
+  console.log('📎 AddTaskForm: Creating task with attachments...');
+  const formDataWithFiles = new FormData();
+  
+  // Append all task data as a single JSON string
+  formDataWithFiles.append('task_data', JSON.stringify(taskData));
+  
+  // Add files
+  formData.attachments.forEach((file, index) => {
+    formDataWithFiles.append(`attachments[${index}]`, file);
+  });
+  
+  console.log('📤 AddTaskForm: FormData prepared with files');
+  response = await apiService.createTaskWithAttachments(selectedTaskList.id, formDataWithFiles);
+} else {
         // Create task without attachments
         console.log('📝 AddTaskForm: Creating task without attachments...');
         console.log('📝 AddTaskForm: Creating task without attachments');
@@ -436,73 +424,64 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       // Get the created task from response
       const createdTask = response.data?.task;
       
-      if (createdTask && onTaskCreated) {
-        // Convert API response to frontend Task format
-        const assignedUser = users.find(user => user.id === createdTask.assigned_to?.id) || createdTask.assigned_to;
-        
-        const newTask: Task = {
-          id: createdTask.id,
-          title: createdTask.title,
-          description: createdTask.description,
-          priority: createdTask.priority,
-          status: selectedTaskList.name,
-          assignedTo: assignedUser,
-          projectId: selectedProject?.id || createdTask.project_id,
-          taskListId: createdTask.task_list_id,
-          dueDate: createdTask.due_date,
-          startDate: createdTask.start_date,
-          createdAt: createdTask.created_at,
-          updatedAt: createdTask.updated_at,
-          attachments: createdTask.attachments_count || 0,
-          comments: createdTask.comments_count || 0,
-          taskType: createdTask.task_type,
-          tags: createdTask.tags || [],
-          estimatedHours: createdTask.estimated_hours || 0
-        };
-        
-        console.log('🎯 AddTaskForm: Converted task for frontend:', newTask);
-        onTaskCreated(newTask);
-      } else {
-        console.error('❌ AddTaskForm: Invalid response structure:', response);
-        throw new Error('Invalid response from server - no task data received');
-      }
-      
-      console.log('🔄 AddTaskForm: Redirecting to project detail...');
-      console.log('✅ AddTaskForm: Task created successfully:', response);
-      
-      onViewChange(selectedProject ? 'project-detail' : 'dashboard');
-    } catch (error) {
-      console.error('❌ AddTaskForm: Task creation failed:', error);
-      console.error('❌ AddTaskForm: Error details:', {
-        message: error.message,
-        stack: error.stack,
-        selectedTaskListId: preSelectedTaskListId,
-        selectedProject: selectedProject?.id,
-        formData
-      });
-      
-      // Show specific error message
-      const errorMessage = error.message?.includes('Backend unavailable') 
-        ? 'Backend server is not available. Please check if Laravel is running.'
-        : error.message?.includes('validation')
-        ? 'Please check your form data and try again.'
-        : error.message || 'Failed to create task. Please try again.';
-        
-      setErrors({ general: errorMessage });
-      // Show user-friendly error message
-      if (error.message?.includes('Assigned user must be a member')) {
-        alert('Error: The assigned user must be a member of the project team.');
-      } else if (error.message?.includes('validation')) {
-        alert('Error: Please check all required fields and try again.');
-      } else if (error.message?.includes('mock data')) {
-        // Still redirect on mock data success
-        onViewChange(selectedProject ? 'project-detail' : 'dashboard');
-      } else {
-        alert('Failed to create task. Please try again.');
-      }
-    } finally {
-      setLoading(false);
+      if (response?.data?.task) {
+    // Convert API response to frontend Task format
+    const createdTask = response.data.task;
+    const assignedUser = users.find(user => user.id === createdTask.assigned_to?.id) || createdTask.assigned_to;
+    
+    const newTask: Task = {
+      id: createdTask.id,
+      title: createdTask.title,
+      description: createdTask.description,
+      priority: createdTask.priority,
+      status: selectedTaskList.name,
+      assignedTo: assignedUser,
+      projectId: selectedProject?.id || createdTask.project_id,
+      taskListId: createdTask.task_list_id,
+      dueDate: createdTask.due_date,
+      startDate: createdTask.start_date,
+      createdAt: createdTask.created_at,
+      updatedAt: createdTask.updated_at,
+      attachments: createdTask.attachments_count || 0,
+      comments: createdTask.comments_count || 0,
+      taskType: createdTask.task_type,
+      tags: createdTask.tags || [],
+      estimatedHours: createdTask.estimated_hours || 0
+    };
+    
+    console.log('🎯 AddTaskForm: Converted task for frontend:', newTask);
+    if (onTaskCreated) {
+      onTaskCreated(newTask);
     }
+    
+    // Show success message and redirect
+    alert('✅ Task Created Successfully');
+    onViewChange(selectedProject ? 'project-detail' : 'dashboard');
+    return; // Important: Return here to prevent further execution
+  } else {
+    throw new Error('Invalid response from server - no task data received');
+  }
+} catch (error) {
+  console.error('❌ AddTaskForm: Task creation failed:', error);
+  
+  // Show specific error message
+  let errorMessage = 'Failed to create task. Please try again.';
+  
+  if (error.message?.includes('Assigned user must be a member')) {
+    errorMessage = 'Error: The assigned user must be a member of the project team.';
+  } else if (error.message?.includes('validation')) {
+    errorMessage = 'Error: Please check all required fields and try again.';
+  } else if (error.message?.includes('mock data')) {
+    // Still redirect on mock data success
+    onViewChange(selectedProject ? 'project-detail' : 'dashboard');
+    return;
+  }
+  
+  setErrors({ general: errorMessage });
+  alert(errorMessage);
+} finally {
+  setLoading(false);
+}
   };
 
   const handleCancel = () => {
