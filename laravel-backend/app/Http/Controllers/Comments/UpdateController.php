@@ -11,15 +11,26 @@ use Illuminate\Http\JsonResponse;
 class UpdateController extends Controller
 {
     /**
-     * Update a comment
+     * Update a comment (Laravel 12 compatible)
      */
     public function __invoke(UpdateCommentRequest $request, Comment $comment): JsonResponse
     {
         $this->authorize('update', $comment);
 
+        \Log::info('Updating comment', [
+            'comment_id' => $comment->id,
+            'task_id' => $comment->task_id,
+            'user_id' => $request->user()->id
+        ]);
+
         $comment->update($request->validated());
 
-        $comment->load(['user', 'attachments']);
+        $comment->load(['user', 'attachments.uploader']);
+
+        \Log::info('Comment updated successfully', [
+            'comment_id' => $comment->id,
+            'updated_by' => $request->user()->name
+        ]);
 
         return response()->json([
             'comment' => new CommentResource($comment),

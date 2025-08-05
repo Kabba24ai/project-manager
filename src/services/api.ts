@@ -932,84 +932,45 @@ if (this.token) {
 
   // Comments
   async getComments(taskId: number) {
-    if (this.useMockData) {
-      console.log('Using mock data for comments');
-      return {
-        data: { comments: [] }
-      };
-    }
-    
     try {
       console.log('🔄 API: Fetching comments for task:', taskId);
+      console.log('🔗 API: Request URL:', `${API_BASE_URL}/tasks/${taskId}/comments`);
+      console.log('🔑 API: Auth token present:', !!this.token);
+      
       return this.request<{ comments: any[] }>(`/tasks/${taskId}/comments`);
     } catch (error) {
       console.error('❌ API: Failed to fetch comments:', error);
-      console.log('Falling back to mock data for comments');
-      this.useMockData = true;
-      return {
-        data: { comments: [] }
-      };
+      console.error('❌ API: Comment fetch error details:', {
+        message: error.message,
+        taskId,
+        apiUrl: `${API_BASE_URL}/tasks/${taskId}/comments`,
+        hasToken: !!this.token
+      });
+      throw error;
     }
   }
 
   async createComment(taskId: number, commentData: any) {
-    if (this.useMockData) {
-      console.log('Using mock data for comment creation');
-      return {
-        data: {
-          comment: {
-            id: Date.now(),
-            task_id: taskId,
-            content: commentData.content,
-            user: {
-              id: 1,
-              name: 'Mock User',
-              email: 'mock@example.com',
-              avatar: 'MU'
-            },
-            ...commentData,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            formatted_date: 'just now',
-            attachments_count: 0
-          },
-          message: 'Comment created successfully (mock data)'
-        }
-      };
-    }
-    
     try {
       console.log('🔄 API: Creating comment for task:', taskId);
       console.log('📝 API: Comment data:', commentData);
+      console.log('🔗 API: Request URL:', `${API_BASE_URL}/tasks/${taskId}/comments`);
+      console.log('🔑 API: Auth token present:', !!this.token);
+      
       return this.request<{ comment: any }>(`/tasks/${taskId}/comments`, {
         method: 'POST',
         body: JSON.stringify(commentData),
       });
     } catch (error) {
       console.error('❌ API: Failed to create comment:', error);
-      console.log('Falling back to mock data for comment creation');
-      this.useMockData = true;
-      return {
-        data: {
-          comment: {
-            id: Date.now(),
-            task_id: taskId,
-            content: commentData.content,
-            user: {
-              id: 1,
-              name: 'Mock User',
-              email: 'mock@example.com',
-              avatar: 'MU'
-            },
-            ...commentData,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            formatted_date: 'just now',
-            attachments_count: 0
-          },
-          message: 'Comment created successfully (mock data)'
-        }
-      };
+      console.error('❌ API: Comment creation error details:', {
+        message: error.message,
+        taskId,
+        commentData,
+        apiUrl: `${API_BASE_URL}/tasks/${taskId}/comments`,
+        hasToken: !!this.token
+      });
+      throw error;
     }
   }
 
