@@ -499,7 +499,6 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
       
       // Show activity tab to display the created task and allow comments
       setShowActivityTab(true);
-      await loadComments(response.data?.task?.id || response.task?.id);
       
       if (response?.data?.task) {
     // Convert API response to frontend Task format
