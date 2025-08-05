@@ -67,47 +67,48 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!validateForm()) return;
+  
+  setLoading(true);
+  setErrors({});
+  
+  try {
+    const response = await apiService.register(formData);
+    console.log("Registration response:", response);
     
-    if (!validateForm()) return;
-    
-    setLoading(true);
-    setErrors({});
-    
-    try {
-      const response = await apiService.register(formData);
-      
-      if (response.data?.user) {
-        onRegisterSuccess(response.data.user);
-      } else {
-        setErrors({ general: 'Registration failed. Please try again.' });
-      }
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      
-      // Handle validation errors from Laravel
-      if (error.response?.data?.errors) {
-        const serverErrors = error.response.data.errors;
-        const formattedErrors: { [key: string]: string } = {};
-        
-        Object.keys(serverErrors).forEach(key => {
-          formattedErrors[key] = Array.isArray(serverErrors[key]) 
-            ? serverErrors[key][0] 
-            : serverErrors[key];
-        });
-        
-        setErrors(formattedErrors);
-      } else if (error.message?.includes('email')) {
-        setErrors({ email: 'This email is already registered. Please use a different email.' });
-      } else {
-        setErrors({ general: 'Registration failed. Please check your information and try again.' });
-      }
-    } finally {
-      setLoading(false);
+    // Check if response contains user data or token (either would indicate success)
+    if (response.user || response.token) {
+      onRegisterSuccess(response.user);
+    } else {
+      setErrors({ general: 'Registration failed. Please try again.' });
     }
-  };
-
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    
+    // Handle validation errors from Laravel
+    if (error.response?.data?.errors) {
+      const serverErrors = error.response.data.errors;
+      const formattedErrors: { [key: string]: string } = {};
+      
+      Object.keys(serverErrors).forEach(key => {
+        formattedErrors[key] = Array.isArray(serverErrors[key]) 
+          ? serverErrors[key][0] 
+          : serverErrors[key];
+      });
+      
+      setErrors(formattedErrors);
+    } else if (error.message?.includes('email')) {
+      setErrors({ email: 'This email is already registered. Please use a different email.' });
+    } else {
+      setErrors({ general: error.response?.data?.message || 'Registration failed. Please check your information and try again.' });
+    }
+  } finally {
+    setLoading(false);
+  }
+};
   const getPasswordStrength = (password: string) => {
     if (password.length === 0) return { strength: 0, label: '', color: '' };
     if (password.length < 6) return { strength: 1, label: 'Weak', color: 'text-red-600' };
