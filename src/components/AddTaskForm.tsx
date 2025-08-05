@@ -418,9 +418,6 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
         throw new Error('Invalid response from server');
       }
       
-      // Store the created task ID for comments
-      setCreatedTaskId(responseTask.id);
-      
       // Handle file attachments if any
       if (formData.attachments && formData.attachments.length > 0) {
         console.log('📎 AddTaskForm: Uploading attachments for task:', createdTask.id);
@@ -445,9 +442,6 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
           alert('Task created successfully, but some attachments failed to upload. You can add them later.');
         }
       }
-      
-      // Show activity tab to display the created task and allow comments
-      setShowActivityTab(true);
       
       if (response?.data?.task) {
     // Convert API response to frontend Task format
@@ -503,8 +497,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
   }
   
   setErrors({ general: errorMessage });
-      // Don't redirect immediately - let user add comments first
-      // onViewChange('project-detail', selectedProject);
+  alert(errorMessage);
+} finally {
   setLoading(false);
 }
   };
@@ -600,9 +594,11 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
               <div className="h-6 w-px bg-gray-300"></div>
               <h1 className="text-2xl font-bold text-gray-900">Add New Task</h1>
             </div>
-          </div>
+              {createdTaskId ? 'Back to Project' : 'Cancel'}
         </div>
-
+            
+            {!createdTaskId && (
+              <button
         {/* No Task Lists Message */}
         <div className="max-w-2xl mx-auto px-6 py-16">
           <div className="text-center bg-white rounded-lg border border-gray-200 p-12">
@@ -620,6 +616,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
             >
               Create Task List First
             </button>
+            )}
           </div>
         </div>
       </div>
@@ -1283,6 +1280,13 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onViewChange, selectedProject
 
           {/* Form Actions */}
           {canShowActions && (
+            {createdTaskId && (
+              <div className="flex items-center space-x-2 text-green-600">
+                <CheckCircle className="w-5 h-5" />
+                <span className="text-sm font-medium">Task created successfully!</span>
+              </div>
+            )}
+            
             <div className="flex items-center justify-end space-x-4">
               <button
                 type="button"

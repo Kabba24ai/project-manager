@@ -940,8 +940,10 @@ if (this.token) {
     }
     
     try {
+      console.log('🔄 API: Fetching comments for task:', taskId);
       return this.request<{ comments: any[] }>(`/tasks/${taskId}/comments`);
     } catch (error) {
+      console.error('❌ API: Failed to fetch comments:', error);
       console.log('Falling back to mock data for comments');
       this.useMockData = true;
       return {
@@ -958,9 +960,18 @@ if (this.token) {
           comment: {
             id: Date.now(),
             task_id: taskId,
+            content: commentData.content,
+            user: {
+              id: 1,
+              name: 'Mock User',
+              email: 'mock@example.com',
+              avatar: 'MU'
+            },
             ...commentData,
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            formatted_date: 'just now',
+            attachments_count: 0
           },
           message: 'Comment created successfully (mock data)'
         }
@@ -968,11 +979,14 @@ if (this.token) {
     }
     
     try {
+      console.log('🔄 API: Creating comment for task:', taskId);
+      console.log('📝 API: Comment data:', commentData);
       return this.request<{ comment: any }>(`/tasks/${taskId}/comments`, {
         method: 'POST',
         body: JSON.stringify(commentData),
       });
     } catch (error) {
+      console.error('❌ API: Failed to create comment:', error);
       console.log('Falling back to mock data for comment creation');
       this.useMockData = true;
       return {
@@ -980,9 +994,18 @@ if (this.token) {
           comment: {
             id: Date.now(),
             task_id: taskId,
+            content: commentData.content,
+            user: {
+              id: 1,
+              name: 'Mock User',
+              email: 'mock@example.com',
+              avatar: 'MU'
+            },
             ...commentData,
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            formatted_date: 'just now',
+            attachments_count: 0
           },
           message: 'Comment created successfully (mock data)'
         }
