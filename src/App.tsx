@@ -56,7 +56,7 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard onViewChange={handleViewChange} />;
+        return <Dashboard onViewChange={handleViewChange} authContext={authContext} />;
       
       case 'project-detail':
         return selectedProject ? (
@@ -67,9 +67,10 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
             }} 
             onViewChange={handleViewChange}
             onTaskListUpdate={setGlobalTaskLists}
+            authContext={authContext}
           />
         ) : (
-          <Dashboard onViewChange={handleViewChange} />
+          <Dashboard onViewChange={handleViewChange} authContext={authContext} />
         );
       
       case 'add-project':
@@ -188,12 +189,22 @@ const AppContent: React.FC<AppProps> = ({ authContext }) => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-md w-full">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
               <p className="text-gray-600 mb-6">Application settings will be implemented here.</p>
-              <button
-                onClick={() => handleViewChange('dashboard')}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Back to Dashboard
-              </button>
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleViewChange('dashboard')}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Back to Dashboard
+                </button>
+                {authContext?.user && (
+                  <button
+                    onClick={authContext.logout}
+                    className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Logout
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         );
