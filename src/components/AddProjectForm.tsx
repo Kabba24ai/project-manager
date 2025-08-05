@@ -92,7 +92,8 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ onViewChange }) => {
     }
   };
 
-  const handleSettingsChange = (settingPath, value) => {
+const handleSettingsChange = (settingPath, value) => {
+  if (settingPath.includes('.')) {
     const [parent, child] = settingPath.split('.');
     setFormData(prev => ({
       ...prev,
@@ -104,7 +105,17 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ onViewChange }) => {
         }
       }
     }));
-  };
+  } else {
+    setFormData(prev => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        [settingPath]: value
+      }
+    }));
+  }
+};
+
 
   const handleTeamMemberToggle = (userId) => {
     setFormData(prev => ({
